@@ -1,5 +1,9 @@
 {
   "menu": {
     "cluster": "集群"
+  },
+  "cluster": {
+    "cluster": "集群",
+    "total_num": "共{num}个"
   }
 }

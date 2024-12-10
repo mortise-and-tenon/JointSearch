@@ -12,3 +12,9 @@ export const GoldenPurpleTheme: ThemeData = {
     secondary: "#b37feb",
   },
 };
+
+export type ClusterData = {
+  name: string;
+  host: string;
+  port: number;
+};

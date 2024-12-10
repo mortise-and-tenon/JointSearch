@@ -1,6 +1,10 @@
 {
     "menu": {
       "cluster": "Cluster"
+    },
+    "cluster": {
+      "cluster": "Cluster",
+      "total_num": "Total:{num}"
     }
   }
   
