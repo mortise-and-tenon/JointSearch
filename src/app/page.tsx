@@ -28,7 +28,7 @@ export default function Home() {
 
         <SpinnerDotted
           size={100}
-          thickness={100}
+          thickness={140}
           speed={100}
           color={theme.Color.primary}
         />
