@@ -1,10 +1,33 @@
 {
-    "menu": {
-      "cluster": "Cluster"
-    },
-    "cluster": {
-      "cluster": "Cluster",
-      "total_num": "Total:{num}"
-    }
+  "menu": {
+    "cluster": "Cluster"
+  },
+  "modal": {
+    "ok": "Confirm",
+    "cancel": "Cancel"
+  },
+  "cluster": {
+    "cluster": "Cluster",
+    "total_num": "Total:{num}",
+    "add": "Add",
+    "modal_title":"Add Cluster",
+    "modal_name": "Name",
+    "modal_name_tip": "Please enter name",
+    "modal_name_repeat_tip":"Duplicate name",
+    "modal_protocol": "Protocol",
+    "modal_host": "Host (IP/Domain)",
+    "modal_host_tip": "Please enter the IP or domain name",
+    "modal_port": "Port",
+    "modal_port_tip": "Please enter the port",
+    "modal_username": "Username",
+    "modal_password": "Password",
+    "modal_btn_test": "Test connection",
+    "modal_test_start":"Start Test",
+    "modal_test_success":"Test Successful",
+    "modal_test_fail":"Test Failed,Please Check Configuration",
+    "delete_title":"Delete Cluster",
+    "delete_desc":"Delete cluster {name}?",
+    "delete_success": "Delete Success",
+    "refresh": "Refreshing"
   }
-  
+}

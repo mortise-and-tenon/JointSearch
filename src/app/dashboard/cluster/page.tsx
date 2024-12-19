@@ -1,8 +1,29 @@
 "use client";
 
-import { PlusOutlined } from "@ant-design/icons";
-import { Button, Card, Typography } from "antd";
-import { useContext, useEffect, useState } from "react";
+import {
+  ExclamationCircleFilled,
+  PlusOutlined,
+  QuestionCircleOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
+import {
+  Button,
+  Card,
+  Checkbox,
+  Col,
+  Flex,
+  Form,
+  Input,
+  InputNumber,
+  message,
+  Modal,
+  Popconfirm,
+  Row,
+  Select,
+  Space,
+  Typography,
+} from "antd";
+import { useContext, useEffect, useRef, useState } from "react";
 import { GlobalContext } from "../../lib/GlobalProvider";
 import "../../globals.css";
 import {
@@ -15,94 +36,338 @@ import {
   SettingOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
-import { ClusterData } from "../../lib/definies";
+import { ClusterData, ConfigFile } from "../../lib/definies";
+import {
+  BaseDirectory,
+  exists,
+  open,
+  readTextFile,
+  writeTextFile,
+} from "@tauri-apps/plugin-fs";
+import type { FormProps, InputRef } from "antd";
+import { fetch } from "@tauri-apps/plugin-http";
+import { SpinnerDiamond } from "spinners-react";
+
+const { confirm } = Modal;
+
+const protocolOptions = [
+  {
+    value: "http",
+    label: "http://",
+  },
+  {
+    value: "https",
+    label: "https://",
+  },
+];
 
 export default function Cluster() {
-  const { i18n } = useContext(GlobalContext);
+  const { i18n, theme } = useContext(GlobalContext);
+
+  const [messageApi, contextHolder] = message.useMessage();
 
   const [clusters, setClusters] = useState<ClusterData[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  //连接测试状态
+  const [isTest, setIsTest] = useState(false);
+  //加载状态
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [form] = Form.useForm();
+  //集群名称引用
+  const inputRef = useRef<InputRef>(null);
 
   useEffect(() => {
-    const clusters = [
-      {
-        name: "集群1",
-        host: "1.2.3.4",
-        port: 9200,
-      },
-      {
-        name: "集群2",
-        host: "1.2.3.4",
-        port: 9200,
-      },
-      {
-        name: "集群3",
-        host: "1.2.3.4",
-        port: 9200,
-      },
-      {
-        name: "集群4",
-        host: "1.2.3.4",
-        port: 9200,
-      },
-      {
-        name: "集群5",
-        host: "1.2.3.4",
-        port: 9200,
-      },
-      {
-        name: "集群6",
-        host: "1.2.3.4",
-        port: 9200,
-      },
-      {
-        name: "集群7",
-        host: "1.2.3.4",
-        port: 9200,
-      },
-      {
-        name: "集群8",
-        host: "1.2.3.4",
-        port: 9200,
-      },
-    ];
-    setClusters(clusters);
+    initForm();
+    refreshClusters();
   }, []);
+
+  //刷新集群列表
+  const refreshClusters = async () => {
+    const clusters = await readConfigFile();
+    setClusters(clusters);
+  };
+
+  //读取配置文件中的集群数据
+  const readConfigFile = async () => {
+    const fileExists = await exists("jointes.json", {
+      baseDir: BaseDirectory.Home,
+    });
+    if (!fileExists) {
+      return [];
+    }
+
+    const jsonContent = await readTextFile("jointes.json", {
+      baseDir: BaseDirectory.Home,
+    });
+
+    const jsonData = JSON.parse(jsonContent);
+    return jsonData["clusters"];
+  };
+
+  //初始表单数据
+  const initForm = () => {
+    setTimeout(() => {
+      inputRef.current?.focus({
+        cursor: "start",
+      });
+    }, 100);
+  };
+
+  //点击显示对话框
+  const showAddModal = async () => {
+    setIsModalOpen(true);
+  };
+
+  //点击保存集群
+  const onOk = () => {
+    form.validateFields().then(async (values: ClusterData) => {
+      //判断是否名字重复
+      const match = clusters.filter((item) => item.name === values.name);
+      if (match.length > 0) {
+        form.setFields([
+          {
+            name: "name",
+            errors: [i18n("cluster.modal_name_repeat_tip")],
+          },
+        ]);
+        return;
+      }
+
+      setIsModalOpen(false);
+
+      addClusterToConfigFile(values);
+      clusters.push(values);
+      setClusters(clusters);
+      form.resetFields();
+    });
+  };
+
+  //保存集群配置
+  const addClusterToConfigFile = async (data: ClusterData) => {
+    const clusters: ClusterData[] = await readConfigFile();
+    clusters.push(data);
+    const file: ConfigFile = {
+      clusters: clusters,
+    };
+
+    await writeTextFile("jointes.json", JSON.stringify(file, null, 2), {
+      baseDir: BaseDirectory.Home,
+    });
+  };
+
+  //点击取消保存集群
+  const onCancel = () => {
+    form.resetFields();
+    setIsModalOpen(false);
+  };
+
+  //点击测试连接按钮
+  const onTestConnect = () => {
+    form.validateFields().then(async (values: ClusterData) => {
+      messageApi.open({
+        type: "info",
+        content: i18n("cluster.modal_test_start"),
+        duration: 1,
+      });
+      setIsTest(true);
+      const url = `${values.protocol}://${values.host}:${values.port}`;
+      try {
+        const response = await fetch(url, {
+          method: "GET",
+        });
+
+        if (response.ok) {
+          const body = await response.json();
+          messageApi.success(i18n("cluster.modal_test_success"));
+        } else {
+          messageApi.error(i18n("cluster.modal_test_fail"));
+        }
+      } catch (error) {
+        console.log("error:", error);
+        messageApi.warning(i18n("cluster.modal_test_fail"));
+      } finally {
+        setIsTest(false);
+      }
+    });
+  };
+
+  //删除集群
+  const onDelCluster = async (name: string) => {
+    setClusters((pre) => pre.filter((item) => item.name != name));
+
+    const clusters: ClusterData[] = await readConfigFile();
+
+    const file: ConfigFile = {
+      clusters: clusters.filter((item) => item.name != name),
+    };
+
+    await writeTextFile("jointes.json", JSON.stringify(file, null, 2), {
+      baseDir: BaseDirectory.Home,
+    });
+
+    messageApi.success(i18n("cluster.delete_success"));
+  };
+
+  //刷新集群数据展示
+  const onRefreshCluster = () => {
+    setIsLoading(true);
+    messageApi.open({
+      type: "info",
+      content: i18n("cluster.refresh"),
+      duration: 1,
+    });
+    refreshClusters();
+    setIsLoading(false);
+  };
+
   return (
-    <div className="h-screen flex flex-col">
-      <header className="h-16 flex items-center space-x-2">
-        <h1 className="text-2xl font-bold">{i18n("cluster.cluster")}</h1>
-        <span>{i18n("cluster.total_num", { num: "3" })}</span>
-        <Button type="primary" icon={<PlusOutlined />}>
-          添加
-        </Button>
-      </header>
-      <div className="flex-1 overflow-auto flex justify-center items-start pb-2 custom-scroll">
-        <div className="flex flex-wrap w-full max-w-full p-2 gap-2">
-        {clusters.map((item) => (
-          <div className="w-full max-w-[200px]">
-            <Card
-              title={item.name}
-              extra={
+    <>
+      {contextHolder}
+      <div className="h-screen flex flex-col">
+        <header className="h-16 flex items-center space-x-2">
+          <h1 className="text-2xl font-bold">{i18n("cluster.cluster")}</h1>
+          <span>
+            {i18n("cluster.total_num", { num: `${clusters.length}` })}
+          </span>
+          <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>
+            {i18n("cluster.add")}
+          </Button>
+          <Button
+            type="text"
+            icon={<ReloadOutlined />}
+            shape="circle"
+            loading={isLoading}
+            onClick={onRefreshCluster}
+          />
+          <Modal
+            title={i18n("cluster.modal_title")}
+            open={isModalOpen}
+            onOk={onOk}
+            onCancel={onCancel}
+            okText={i18n("modal.ok")}
+            cancelText={i18n("modal.cancel")}
+            footer={(_, { OkBtn, CancelBtn }) => (
+              <>
                 <Button
-                  danger
-                  type="primary"
-                  size="small"
-                  shape="circle"
-                  icon={<DeleteOutlined />}
-                />
-              }
-              hoverable={true}
-              actions={[
-                <EditOutlined key="edit" />,
-                <SettingOutlined key="setting" />,
-              ]}
+                  loading={isTest}
+                  onClick={onTestConnect}
+                  disabled={isTest}
+                >
+                  {i18n("cluster.modal_btn_test")}
+                </Button>
+                <CancelBtn />
+                <OkBtn />
+              </>
+            )}
+          >
+            <Form
+              name="addClusterForm"
+              form={form}
+              initialValues={{ protocol: "http", port: 9200 }}
+              layout="vertical"
+              autoComplete="off"
             >
-              <p>Card content</p>
-            </Card>
+              <Form.Item<ClusterData>
+                label={i18n("cluster.modal_name")}
+                name="name"
+                rules={[
+                  { required: true, message: i18n("cluster.modal_name_tip") },
+                ]}
+              >
+                <Input ref={inputRef} />
+              </Form.Item>
+
+              <Space.Compact>
+                <Form.Item<ClusterData>
+                  label={i18n("cluster.modal_protocol")}
+                  name="protocol"
+                >
+                  <Select options={protocolOptions} style={{ width: "90px" }} />
+                </Form.Item>
+
+                <Form.Item<ClusterData>
+                  label={i18n("cluster.modal_host")}
+                  name="host"
+                  rules={[
+                    { required: true, message: i18n("cluster.modal_host_tip") },
+                  ]}
+                >
+                  <Input addonAfter=":" style={{ width: "300px" }} />
+                </Form.Item>
+
+                <Form.Item<ClusterData>
+                  label={i18n("cluster.modal_port")}
+                  name="port"
+                  rules={[
+                    { required: true, message: i18n("cluster.modal_port_tip") },
+                  ]}
+                >
+                  <InputNumber
+                    controls={false}
+                    precision={0}
+                    min={1024}
+                    max={65535}
+                    style={{ width: "84px" }}
+                  />
+                </Form.Item>
+              </Space.Compact>
+
+              <Form.Item<ClusterData>
+                label={i18n("cluster.modal_username")}
+                name="username"
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item<ClusterData>
+                label={i18n("cluster.modal_password")}
+                name="password"
+              >
+                <Input.Password />
+              </Form.Item>
+            </Form>
+          </Modal>
+        </header>
+        <div className="flex-1 overflow-auto flex justify-center items-start pb-2 custom-scroll">
+          <div className="flex flex-wrap w-full max-w-full p-2 gap-2">
+            {clusters.map((item) => (
+              <div key={item.name} className="w-full max-w-[200px]">
+                <Card
+                  title={item.name}
+                  extra={
+                    <Popconfirm
+                      icon={<QuestionCircleOutlined style={{ color: "red" }} />}
+                      title={i18n("cluster.delete_title")}
+                      description={i18n("cluster.delete_desc", {
+                        name: item.name,
+                      })}
+                      onConfirm={() => onDelCluster(item.name)}
+                      okText={i18n("modal.ok")}
+                      okButtonProps={{ danger: true }}
+                      cancelText={i18n("modal.cancel")}
+                    >
+                      <Button
+                        danger
+                        type="primary"
+                        size="small"
+                        shape="circle"
+                        icon={<DeleteOutlined />}
+                      />
+                    </Popconfirm>
+                  }
+                  hoverable={true}
+                  actions={[
+                    <EditOutlined key="edit" />,
+                    <SettingOutlined key="setting" />,
+                  ]}
+                >
+                  <p>{`${item.protocol}://${item.host}:${item.port}`}</p>
+                </Card>
+              </div>
+            ))}
+          </div>
         </div>
-        ))}
-     </div>
       </div>
-    </div>
+    </>
   );
 }

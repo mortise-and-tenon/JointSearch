@@ -15,6 +15,13 @@ export const GoldenPurpleTheme: ThemeData = {
 
 export type ClusterData = {
   name: string;
+  protocol: string;
   host: string;
   port: number;
+  username?: string;
+  password?: string;
+};
+
+export type ConfigFile = {
+  clusters: ClusterData[];
 };
