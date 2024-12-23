@@ -14,6 +14,7 @@ export const GoldenPurpleTheme: ThemeData = {
 };
 
 export type ClusterData = {
+  id:string;
   name: string;
   protocol: string;
   host: string;

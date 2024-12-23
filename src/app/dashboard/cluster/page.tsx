@@ -48,6 +48,8 @@ import type { FormProps, InputRef } from "antd";
 import { fetch } from "@tauri-apps/plugin-http";
 import { SpinnerDiamond } from "spinners-react";
 
+import { v4 as uuidv4 } from "uuid";
+
 const { confirm } = Modal;
 
 const protocolOptions = [
@@ -68,6 +70,8 @@ export default function Cluster() {
 
   const [clusters, setClusters] = useState<ClusterData[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  //是否编辑
+  const [isEdit, setIsEdit] = useState(false);
   //连接测试状态
   const [isTest, setIsTest] = useState(false);
   //加载状态
@@ -123,7 +127,7 @@ export default function Cluster() {
   const onOk = () => {
     form.validateFields().then(async (values: ClusterData) => {
       //判断是否名字重复
-      const match = clusters.filter((item) => item.name === values.name);
+      const match = clusters.filter((item) => item.name === values.name && item.id != values.id);
       if (match.length > 0) {
         form.setFields([
           {
@@ -136,9 +140,16 @@ export default function Cluster() {
 
       setIsModalOpen(false);
 
-      addClusterToConfigFile(values);
-      clusters.push(values);
-      setClusters(clusters);
+      if (isEdit) {
+        setIsEdit(false);
+        updateClusterToConfigFile(values);
+      } else {
+        values.id = uuidv4();
+        addClusterToConfigFile(values);
+        clusters.push(values);
+        setClusters(clusters);
+      }
+
       form.resetFields();
     });
   };
@@ -156,10 +167,35 @@ export default function Cluster() {
     });
   };
 
+  //更新集群配置
+  const updateClusterToConfigFile = async (data: ClusterData) => {
+    setClusters((pre) => {
+      const newList = pre.filter((item) => item.id != data.id);
+      newList.push(data);
+      return newList;
+    });
+
+    const clusters: ClusterData[] = await readConfigFile();
+
+    const newClusters = clusters.filter((item) => item.id != data.id);
+    newClusters.push(data);
+    console.log(newClusters);
+    const file: ConfigFile = {
+      clusters: newClusters,
+    };
+
+    await writeTextFile("jointes.json", JSON.stringify(file, null, 2), {
+      baseDir: BaseDirectory.Home,
+    });
+
+    messageApi.success(i18n("cluster.update_success"));
+  };
+
   //点击取消保存集群
   const onCancel = () => {
     form.resetFields();
     setIsModalOpen(false);
+    setIsEdit(true);
   };
 
   //点击测试连接按钮
@@ -193,13 +229,13 @@ export default function Cluster() {
   };
 
   //删除集群
-  const onDelCluster = async (name: string) => {
-    setClusters((pre) => pre.filter((item) => item.name != name));
+  const onDelCluster = async (id: string) => {
+    setClusters((pre) => pre.filter((item) => item.id != id));
 
     const clusters: ClusterData[] = await readConfigFile();
 
     const file: ConfigFile = {
-      clusters: clusters.filter((item) => item.name != name),
+      clusters: clusters.filter((item) => item.id != id),
     };
 
     await writeTextFile("jointes.json", JSON.stringify(file, null, 2), {
@@ -219,6 +255,19 @@ export default function Cluster() {
     });
     refreshClusters();
     setIsLoading(false);
+  };
+
+  //点击编辑集群
+  const onEditCluster = (id: string) => {
+    setIsModalOpen(true);
+    setIsEdit(true);
+    const cluster = clusters.filter((item) => item.id == id)[0];
+    form.setFieldsValue({
+      id: cluster.id,
+      name: cluster.name,
+      host: cluster.host,
+      port: cluster.port,
+    });
   };
 
   return (
@@ -268,6 +317,9 @@ export default function Cluster() {
               layout="vertical"
               autoComplete="off"
             >
+              <Form.Item<ClusterData> name="id" style={{display:"none"}}>
+                
+              </Form.Item>
               <Form.Item<ClusterData>
                 label={i18n("cluster.modal_name")}
                 name="name"
@@ -341,7 +393,7 @@ export default function Cluster() {
                       description={i18n("cluster.delete_desc", {
                         name: item.name,
                       })}
-                      onConfirm={() => onDelCluster(item.name)}
+                      onConfirm={() => onDelCluster(item.id)}
                       okText={i18n("modal.ok")}
                       okButtonProps={{ danger: true }}
                       cancelText={i18n("modal.cancel")}
@@ -357,8 +409,10 @@ export default function Cluster() {
                   }
                   hoverable={true}
                   actions={[
-                    <EditOutlined key="edit" />,
-                    <SettingOutlined key="setting" />,
+                    <EditOutlined
+                      key="edit"
+                      onClick={() => onEditCluster(item.id)}
+                    />,
                   ]}
                 >
                   <p>{`${item.protocol}://${item.host}:${item.port}`}</p>

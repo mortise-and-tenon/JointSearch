@@ -28,6 +28,7 @@
     "delete_title": "删除集群",
     "delete_desc": "确定删除集群{name}？",
     "delete_success": "删除成功",
-    "refresh": "刷新中"
+    "refresh": "刷新中",
+    "update_success":"更新成功"
   }
 }

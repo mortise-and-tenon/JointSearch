@@ -28,6 +28,7 @@
     "delete_title":"Delete Cluster",
     "delete_desc":"Delete cluster {name}?",
     "delete_success": "Delete Success",
-    "refresh": "Refreshing"
+    "refresh": "Refreshing",
+    "update_success":"Update Success"
   }
 }
