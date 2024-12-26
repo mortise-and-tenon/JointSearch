@@ -127,7 +127,9 @@ export default function Cluster() {
   const onOk = () => {
     form.validateFields().then(async (values: ClusterData) => {
       //判断是否名字重复
-      const match = clusters.filter((item) => item.name === values.name && item.id != values.id);
+      const match = clusters.filter(
+        (item) => item.name === values.name && item.id != values.id
+      );
       if (match.length > 0) {
         form.setFields([
           {
@@ -207,15 +209,30 @@ export default function Cluster() {
         duration: 1,
       });
       setIsTest(true);
+
       const url = `${values.protocol}://${values.host}:${values.port}`;
+
+      const headers: HeadersInit = {};
+
+      if (values.username != "") {
+        const authValue = btoa(`${values.username}:${values.password}`);
+        headers["Authorization"] = `Basic ${authValue}`;
+      }
+
       try {
-        const response = await fetch(url, {
+        const response = await fetch(`${url}`, {
           method: "GET",
+          headers: headers,
         });
 
         if (response.ok) {
           const body = await response.json();
-          messageApi.success(i18n("cluster.modal_test_success"));
+          console.log(body["version"]["number"]);
+          messageApi.success(
+            i18n("cluster.modal_test_success", {
+              number: body["version"]["number"],
+            })
+          );
         } else {
           messageApi.error(i18n("cluster.modal_test_fail"));
         }
@@ -265,8 +282,11 @@ export default function Cluster() {
     form.setFieldsValue({
       id: cluster.id,
       name: cluster.name,
+      protocol: cluster.protocol,
       host: cluster.host,
       port: cluster.port,
+      username: cluster.username,
+      password: cluster.password,
     });
   };
 
@@ -290,7 +310,11 @@ export default function Cluster() {
             onClick={onRefreshCluster}
           />
           <Modal
-            title={i18n("cluster.modal_title")}
+            title={
+              isEdit
+                ? i18n("cluster.modal_title_modify")
+                : i18n("cluster.modal_title")
+            }
             open={isModalOpen}
             onOk={onOk}
             onCancel={onCancel}
@@ -317,9 +341,10 @@ export default function Cluster() {
               layout="vertical"
               autoComplete="off"
             >
-              <Form.Item<ClusterData> name="id" style={{display:"none"}}>
-                
-              </Form.Item>
+              <Form.Item<ClusterData>
+                name="id"
+                style={{ display: "none" }}
+              ></Form.Item>
               <Form.Item<ClusterData>
                 label={i18n("cluster.modal_name")}
                 name="name"
@@ -334,6 +359,7 @@ export default function Cluster() {
                 <Form.Item<ClusterData>
                   label={i18n("cluster.modal_protocol")}
                   name="protocol"
+                  tooltip={i18n("cluster.modal_protocol_tooltip")}
                 >
                   <Select options={protocolOptions} style={{ width: "90px" }} />
                 </Form.Item>
