@@ -3,6 +3,7 @@
 import {
   ExclamationCircleFilled,
   PlusOutlined,
+  ProfileOutlined,
   QuestionCircleOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
@@ -11,6 +12,7 @@ import {
   Card,
   Checkbox,
   Col,
+  Descriptions,
   Flex,
   Form,
   Input,
@@ -21,6 +23,7 @@ import {
   Row,
   Select,
   Space,
+  Tooltip,
   Typography,
 } from "antd";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -36,7 +39,12 @@ import {
   SettingOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
-import { ClusterData, ConfigFile } from "../../lib/definies";
+import {
+  ClusterData,
+  ClusterDetail,
+  ConfigFile,
+  query,
+} from "../../lib/definies";
 import {
   BaseDirectory,
   exists,
@@ -49,6 +57,7 @@ import { fetch } from "@tauri-apps/plugin-http";
 import { SpinnerDiamond } from "spinners-react";
 
 import { v4 as uuidv4 } from "uuid";
+import DescriptionsItem from "antd/es/descriptions/Item";
 
 const { confirm } = Modal;
 
@@ -68,7 +77,9 @@ export default function Cluster() {
 
   const [messageApi, contextHolder] = message.useMessage();
 
+  //集群数据
   const [clusters, setClusters] = useState<ClusterData[]>([]);
+  //集群编辑对话框
   const [isModalOpen, setIsModalOpen] = useState(false);
   //是否编辑
   const [isEdit, setIsEdit] = useState(false);
@@ -76,6 +87,10 @@ export default function Cluster() {
   const [isTest, setIsTest] = useState(false);
   //加载状态
   const [isLoading, setIsLoading] = useState(false);
+  //展示集群信息对话框
+  const [isShowInfo, setIsShowInfo] = useState(false);
+  //集群详情
+  const [clusterDetail, setClusterDetail] = useState<ClusterDetail>();
 
   const [form] = Form.useForm();
   //集群名称引用
@@ -290,6 +305,25 @@ export default function Cluster() {
     });
   };
 
+  //展示集群信息
+  const onShowCluster = async (id: string) => {
+    setIsShowInfo(true);
+    const resp = await query(id, "GET");
+    const clusterDetail: ClusterDetail = {
+      name: resp["name"],
+      cluster_name: resp["cluster_name"],
+      cluster_uuid: resp["cluster_uuid"],
+      version: resp["version"]["number"],
+    };
+    setClusterDetail(clusterDetail);
+  };
+
+  //隐藏集群信息
+  const onHideCluster = ()=>{
+    setIsShowInfo(false);
+    setClusterDetail(undefined);
+  }
+
   return (
     <>
       {contextHolder}
@@ -405,6 +439,41 @@ export default function Cluster() {
               </Form.Item>
             </Form>
           </Modal>
+          <Modal
+            title={i18n("cluster.basic_info")}
+            open={isShowInfo}
+            loading={!clusterDetail}
+            okText={i18n("modal.ok")}
+            closable={false}
+            footer={
+              <Button type="primary" onClick={onHideCluster}>
+                {i18n("modal.ok")}
+              </Button>
+            }
+          >
+            <Descriptions bordered column={1}>
+              <DescriptionsItem
+                key="name"
+                label="名字"
+                children={clusterDetail?.name}
+              />
+              <DescriptionsItem
+                key="cluster_name"
+                label="集群名字"
+                children={clusterDetail?.cluster_name}
+              />
+              <DescriptionsItem
+                key="cluster_uuid"
+                label="集群uuid"
+                children={clusterDetail?.cluster_uuid}
+              />
+              <DescriptionsItem
+                key="version"
+                label="版本"
+                children={clusterDetail?.version}
+              />
+            </Descriptions>
+          </Modal>
         </header>
         <div className="flex-1 overflow-auto flex justify-center items-start pb-2 custom-scroll">
           <div className="flex flex-wrap w-full max-w-full p-2 gap-2">
@@ -435,10 +504,15 @@ export default function Cluster() {
                   }
                   hoverable={true}
                   actions={[
-                    <EditOutlined
-                      key="edit"
-                      onClick={() => onEditCluster(item.id)}
-                    />,
+                    <Tooltip placement="bottom" title={i18n("common.edit")}>
+                      <EditOutlined
+                        key="edit"
+                        onClick={() => onEditCluster(item.id)}
+                      />
+                    </Tooltip>,
+                    <Tooltip placement="bottom" title={i18n("cluster.basic_info")}>
+                      <ProfileOutlined onClick={() => onShowCluster(item.id)} />
+                    </Tooltip>,
                   ]}
                 >
                   <p>{`${item.protocol}://${item.host}:${item.port}`}</p>

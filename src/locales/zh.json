@@ -6,17 +6,20 @@
     "ok": "确定",
     "cancel": "取消"
   },
+  "common": {
+    "edit": "修改"
+  },
   "cluster": {
     "cluster": "集群",
     "total_num": "共{num}个",
     "add": "添加",
     "modal_title": "添加集群",
-    "modal_title_modify":"修改集群",
+    "modal_title_modify": "修改集群",
     "modal_name": "昵称",
     "modal_name_tip": "请输入昵称",
     "modal_name_repeat_tip": "昵称重复",
     "modal_protocol": "协议",
-    "modal_protocol_tooltip":"如果 Elasticsearch 使用的Https自签证书，请获取CA证书安装在本地计算机的“受信任的根证书颁发机构”。",
+    "modal_protocol_tooltip": "如果 Elasticsearch 使用的Https自签证书，请获取CA证书安装在本地计算机的“受信任的根证书颁发机构”。",
     "modal_host": "主机（IP/域名）",
     "modal_host_tip": "请输入IP或域名",
     "modal_port": "端口",
@@ -31,6 +34,11 @@
     "delete_desc": "确定删除集群{name}？",
     "delete_success": "删除成功",
     "refresh": "刷新中",
-    "update_success":"更新成功"
+    "update_success": "更新成功",
+    "basic_info": "基本信息",
+    "name": "名字",
+    "cluster_name": "集群名字",
+    "cluster_uuid": "集群uuid",
+    "version": "版本"
   }
 }

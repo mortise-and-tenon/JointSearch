@@ -6,6 +6,9 @@
     "ok": "Confirm",
     "cancel": "Cancel"
   },
+  "common": {
+    "edit": "Edit"
+  },
   "cluster": {
     "cluster": "Cluster",
     "total_num": "Total:{num}",
@@ -31,6 +34,11 @@
     "delete_desc":"Delete cluster {name}?",
     "delete_success": "Delete Success",
     "refresh": "Refreshing",
-    "update_success":"Update Success"
+    "update_success":"Update Success",
+    "basic_info":"Basic Information",
+    "name": "name",
+    "cluster_name": "Cluster Name",
+    "cluster_uuid": "Cluster Uuid",
+    "version": "Version"
   }
 }
