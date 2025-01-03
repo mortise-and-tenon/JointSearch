@@ -7,7 +7,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { GoldenPurpleTheme, ThemeData } from "./definies";
+import { ClusterData, GoldenPurpleTheme, ThemeData } from "./definies";
 
 type GlobalContextType = {
   theme: ThemeData;
@@ -18,6 +18,10 @@ type GlobalContextType = {
   setLocale: Dispatch<SetStateAction<string>>;
   i18n: (key: string, param?: PlaceParam) => string;
   translation: Translations;
+  clusters: ClusterData[];
+  setClusters: Dispatch<SetStateAction<ClusterData[]>>;
+  currentCluster: ClusterData;
+  setCurrentCluster: Dispatch<SetStateAction<ClusterData>>;
 };
 
 interface Translations {
@@ -39,6 +43,10 @@ export const GlobalContext = createContext<GlobalContextType>({
     return key;
   },
   translation: {},
+  clusters: [],
+  setClusters: () => {},
+  currentCluster: {},
+  setCurrentCluster: () => {},
 });
 
 export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
@@ -46,6 +54,8 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
   const [fontSize, setFontSize] = useState(14);
   const [locale, setLocale] = useState("zh");
   const [translation, setTranslation] = useState<Translations>({});
+  const [clusters, setClusters] = useState<ClusterData[]>([]);
+  const [currentCluster, setCurrentCluster] = useState<ClusterData>({});
 
   //用于客户端组件获取国际化文字的函数
   const i18n = (key: string, param?: PlaceParam): string => {
@@ -104,6 +114,10 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
         setLocale,
         i18n,
         translation,
+        clusters,
+        setClusters,
+        currentCluster,
+        setCurrentCluster,
       }}
     >
       {children}

@@ -17,11 +17,11 @@ export const GoldenPurpleTheme: ThemeData = {
 };
 
 export type ClusterData = {
-  id: string;
-  name: string;
-  protocol: string;
-  host: string;
-  port: number;
+  id?: string;
+  name?: string;
+  protocol?: string;
+  host?: string;
+  port?: number;
   username?: string;
   password?: string;
 };

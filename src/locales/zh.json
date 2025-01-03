@@ -39,6 +39,9 @@
     "name": "名字",
     "cluster_name": "集群名字",
     "cluster_uuid": "集群uuid",
-    "version": "版本"
+    "version": "版本",
+    "current_version": "当前集群",
+    "query_basic_fail": "基本信息获取失败",
+    "select_cluster": "选择集群"
   }
 }

@@ -59,26 +59,12 @@ import { SpinnerDiamond } from "spinners-react";
 import { v4 as uuidv4 } from "uuid";
 import DescriptionsItem from "antd/es/descriptions/Item";
 
-const { confirm } = Modal;
-
-const protocolOptions = [
-  {
-    value: "http",
-    label: "http://",
-  },
-  {
-    value: "https",
-    label: "https://",
-  },
-];
-
 export default function Cluster() {
-  const { i18n, theme } = useContext(GlobalContext);
+  const { i18n, clusters, setClusters, currentCluster, setCurrentCluster } =
+    useContext(GlobalContext);
 
   const [messageApi, contextHolder] = message.useMessage();
 
-  //集群数据
-  const [clusters, setClusters] = useState<ClusterData[]>([]);
   //集群编辑对话框
   const [isModalOpen, setIsModalOpen] = useState(false);
   //是否编辑
@@ -261,7 +247,11 @@ export default function Cluster() {
   };
 
   //删除集群
-  const onDelCluster = async (id: string) => {
+  const onDelCluster = async (id: string | undefined) => {
+    if (id == undefined) {
+      return;
+    }
+
     setClusters((pre) => pre.filter((item) => item.id != id));
 
     const clusters: ClusterData[] = await readConfigFile();
@@ -290,7 +280,11 @@ export default function Cluster() {
   };
 
   //点击编辑集群
-  const onEditCluster = (id: string) => {
+  const onEditCluster = (id: string | undefined) => {
+    if (id == undefined) {
+      return;
+    }
+
     setIsModalOpen(true);
     setIsEdit(true);
     const cluster = clusters.filter((item) => item.id == id)[0];
@@ -306,43 +300,84 @@ export default function Cluster() {
   };
 
   //展示集群信息
-  const onShowCluster = async (id: string) => {
+  const onShowCluster = async (id: string | undefined) => {
+    if (id == undefined) {
+      return;
+    }
+
     setIsShowInfo(true);
-    const resp = await query(id, "GET");
-    const clusterDetail: ClusterDetail = {
-      name: resp["name"],
-      cluster_name: resp["cluster_name"],
-      cluster_uuid: resp["cluster_uuid"],
-      version: resp["version"]["number"],
-    };
-    setClusterDetail(clusterDetail);
+    try {
+      const resp = await query(id, "GET");
+      const clusterDetail: ClusterDetail = {
+        name: resp["name"],
+        cluster_name: resp["cluster_name"],
+        cluster_uuid: resp["cluster_uuid"],
+        version: resp["version"]["number"],
+      };
+      setClusterDetail(clusterDetail);
+    } catch (error) {
+      console.log("query cluster basic info error:", error);
+      messageApi.error(i18n("cluster.query_basic_fail"));
+      setIsShowInfo(false);
+    }
   };
 
   //隐藏集群信息
-  const onHideCluster = ()=>{
+  const onHideCluster = () => {
     setIsShowInfo(false);
     setClusterDetail(undefined);
-  }
+  };
+
+  const onSelectCluster = (clusterId: string | undefined) => {
+    if (clusterId == undefined) {
+      return;
+    }
+
+    const clusterFilter = clusters.filter((item) => item.id === clusterId);
+    if (clusterFilter.length == 1) {
+      setCurrentCluster(clusterFilter[0]);
+    }
+  };
 
   return (
     <>
       {contextHolder}
       <div className="h-screen flex flex-col">
-        <header className="h-16 flex items-center space-x-2">
-          <h1 className="text-2xl font-bold">{i18n("cluster.cluster")}</h1>
-          <span>
-            {i18n("cluster.total_num", { num: `${clusters.length}` })}
-          </span>
-          <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>
-            {i18n("cluster.add")}
-          </Button>
-          <Button
-            type="text"
-            icon={<ReloadOutlined />}
-            shape="circle"
-            loading={isLoading}
-            onClick={onRefreshCluster}
-          />
+        <header className="h-16 flex justify-between items-center">
+          <div className="flex items-center space-x-2">
+            <h1 className="text-2xl font-bold">{i18n("cluster.cluster")}</h1>
+            <span>
+              {i18n("cluster.total_num", { num: `${clusters.length}` })}
+            </span>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={showAddModal}
+            >
+              {i18n("cluster.add")}
+            </Button>
+            <Button
+              type="text"
+              icon={<ReloadOutlined />}
+              shape="circle"
+              loading={isLoading}
+              onClick={onRefreshCluster}
+            />
+          </div>
+          <div className="flex space-x-2 items-center mr-2">
+            <p className="text-base">{i18n("cluster.current_version")}</p>
+            <Select
+              placeholder={i18n("cluster.select_cluster")}
+              value={currentCluster.id}
+              style={{ width: 120 }}
+              onChange={onSelectCluster}
+              options={clusters.map((item) => ({
+                value: item.id,
+                label: item.name,
+              }))}
+            />
+          </div>
+
           <Modal
             title={
               isEdit
@@ -395,7 +430,19 @@ export default function Cluster() {
                   name="protocol"
                   tooltip={i18n("cluster.modal_protocol_tooltip")}
                 >
-                  <Select options={protocolOptions} style={{ width: "90px" }} />
+                  <Select
+                    options={[
+                      {
+                        value: "http",
+                        label: "http://",
+                      },
+                      {
+                        value: "https",
+                        label: "https://",
+                      },
+                    ]}
+                    style={{ width: "90px" }}
+                  />
                 </Form.Item>
 
                 <Form.Item<ClusterData>
@@ -454,22 +501,22 @@ export default function Cluster() {
             <Descriptions bordered column={1}>
               <DescriptionsItem
                 key="name"
-                label="名字"
+                label={i18n("cluster.name")}
                 children={clusterDetail?.name}
               />
               <DescriptionsItem
                 key="cluster_name"
-                label="集群名字"
+                label={i18n("cluster.cluster_name")}
                 children={clusterDetail?.cluster_name}
               />
               <DescriptionsItem
                 key="cluster_uuid"
-                label="集群uuid"
+                label={i18n("cluster.cluster_uuid")}
                 children={clusterDetail?.cluster_uuid}
               />
               <DescriptionsItem
                 key="version"
-                label="版本"
+                label={i18n("cluster.version")}
                 children={clusterDetail?.version}
               />
             </Descriptions>
@@ -478,7 +525,11 @@ export default function Cluster() {
         <div className="flex-1 overflow-auto flex justify-center items-start pb-2 custom-scroll">
           <div className="flex flex-wrap w-full max-w-full p-2 gap-2">
             {clusters.map((item) => (
-              <div key={item.name} className="w-full max-w-[200px]">
+              <div
+                key={item.name}
+                className="w-full max-w-[200px]"
+                onClick={() => onSelectCluster(item.id)}
+              >
                 <Card
                   title={item.name}
                   extra={
@@ -486,7 +537,7 @@ export default function Cluster() {
                       icon={<QuestionCircleOutlined style={{ color: "red" }} />}
                       title={i18n("cluster.delete_title")}
                       description={i18n("cluster.delete_desc", {
-                        name: item.name,
+                        name: item.name == undefined ? "" : item.name,
                       })}
                       onConfirm={() => onDelCluster(item.id)}
                       okText={i18n("modal.ok")}
@@ -510,7 +561,10 @@ export default function Cluster() {
                         onClick={() => onEditCluster(item.id)}
                       />
                     </Tooltip>,
-                    <Tooltip placement="bottom" title={i18n("cluster.basic_info")}>
+                    <Tooltip
+                      placement="bottom"
+                      title={i18n("cluster.basic_info")}
+                    >
                       <ProfileOutlined onClick={() => onShowCluster(item.id)} />
                     </Tooltip>,
                   ]}
