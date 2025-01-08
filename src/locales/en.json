@@ -1,13 +1,18 @@
 {
   "menu": {
-    "cluster": "Cluster"
+    "cluster": "Cluster",
+    "node": "Node"
   },
   "modal": {
     "ok": "Confirm",
     "cancel": "Cancel"
   },
   "common": {
-    "edit": "Edit"
+    "edit": "Edit",
+    "current_cluster": "Current Cluster",
+    "yes": "Yes",
+    "no": "No",
+    "detail": "Detail"
   },
   "cluster": {
     "cluster": "Cluster",
@@ -40,8 +45,37 @@
     "cluster_name": "Cluster Name",
     "cluster_uuid": "Cluster Uuid",
     "version": "Version",
-    "current_version": "Current Cluster",
     "query_basic_fail": "Failure to obtain basic information",
     "select_cluster": "Select Cluster"
+  },
+  "node": {
+    "node": "Node",
+    "total_num": "Total:{num}",
+    "refresh": "Refreshing",
+    "select_cluster": "Select Cluster",
+    "table_name": "Name",
+    "table_master": "Master",
+    "table_role": "Role",
+    "table_cpu": "CPU Percent",
+    "table_ram": "Ram Percent",
+    "table_heap": "Heap Percent",
+    "query_node_error_tip": "Query data abnormality",
+    "detail": "Node Detail",
+    "show_detail": "Show Detail",
+    "detail_name": "Name",
+    "detail_version": "Version",
+    "detail_roles": "Roles",
+    "detail_host": "Host",
+    "detail_ip": "IP",
+    "detail_transport_address": "Transport Address",
+    "detail_total_indexing_buffer": "Total Indexing Buffer",
+    "detail_os": "OS",
+    "detail_os_name":"Name:",
+    "detail_os_arch": "Arch:",
+    "detail_os_version":"Version:",
+    "detail_process": "Process:",
+    "detail_process_id": "ID:",
+    "detail_process_refresh_interval": "Refresh Interval:",
+    "detail_process_mlockall": "mlockall:"
   }
 }

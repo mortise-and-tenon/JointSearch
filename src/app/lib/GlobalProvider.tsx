@@ -22,6 +22,7 @@ type GlobalContextType = {
   setClusters: Dispatch<SetStateAction<ClusterData[]>>;
   currentCluster: ClusterData;
   setCurrentCluster: Dispatch<SetStateAction<ClusterData>>;
+  onSelectCluster: (clusterId: string | undefined) => void;
 };
 
 interface Translations {
@@ -47,6 +48,7 @@ export const GlobalContext = createContext<GlobalContextType>({
   setClusters: () => {},
   currentCluster: {},
   setCurrentCluster: () => {},
+  onSelectCluster: (clusterId: string | undefined) => {},
 });
 
 export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
@@ -103,6 +105,17 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     loadI18nData();
   }, [locale]);
 
+  const onSelectCluster = (clusterId: string | undefined) => {
+    if (clusterId == undefined) {
+      return;
+    }
+
+    const clusterFilter = clusters.filter((item) => item.id === clusterId);
+    if (clusterFilter.length == 1) {
+      setCurrentCluster(clusterFilter[0]);
+    }
+  };
+
   return (
     <GlobalContext.Provider
       value={{
@@ -118,6 +131,7 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
         setClusters,
         currentCluster,
         setCurrentCluster,
+        onSelectCluster,
       }}
     >
       {children}

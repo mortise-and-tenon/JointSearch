@@ -1,13 +1,18 @@
 {
   "menu": {
-    "cluster": "集群"
+    "cluster": "集群",
+    "node": "节点"
   },
   "modal": {
     "ok": "确定",
     "cancel": "取消"
   },
   "common": {
-    "edit": "修改"
+    "edit": "修改",
+    "current_cluster": "当前集群",
+    "yes": "是",
+    "no": "否",
+    "detail": "详情"
   },
   "cluster": {
     "cluster": "集群",
@@ -40,8 +45,37 @@
     "cluster_name": "集群名字",
     "cluster_uuid": "集群uuid",
     "version": "版本",
-    "current_version": "当前集群",
     "query_basic_fail": "基本信息获取失败",
     "select_cluster": "选择集群"
+  },
+  "node": {
+    "node": "节点",
+    "total_num": "共{num}个",
+    "refresh": "刷新中",
+    "select_cluster": "请选择集群",
+    "table_name": "名字",
+    "table_master": "主节点",
+    "table_role": "角色",
+    "table_cpu": "CPU使用率",
+    "table_ram": "内存使用率",
+    "table_heap": "堆使用率",
+    "query_node_error_tip": "查询数据异常",
+    "detail": "节点详情",
+    "show_detail": "查看详情",
+    "detail_name": "名字",
+    "detail_version": "版本",
+    "detail_roles": "角色",
+    "detail_host": "主机",
+    "detail_ip": "IP",
+    "detail_transport_address": "传输地址",
+    "detail_total_indexing_buffer": "最大索引缓存",
+    "detail_os": "操作系统",
+    "detail_os_name":"名字：",
+    "detail_os_arch": "架构：",
+    "detail_os_version":"版本",
+    "detail_process": "进程",
+    "detail_process_id": "ID：",
+    "detail_process_refresh_interval": "刷新周期：",
+    "detail_process_mlockall": "mlockall："
   }
 }

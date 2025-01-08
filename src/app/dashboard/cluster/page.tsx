@@ -1,67 +1,57 @@
 "use client";
 
 import {
-  ExclamationCircleFilled,
+  DeleteOutlined,
+  EditOutlined,
   PlusOutlined,
   ProfileOutlined,
   QuestionCircleOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
 import {
+  BaseDirectory,
+  exists,
+  readTextFile,
+  writeTextFile,
+} from "@tauri-apps/plugin-fs";
+import { fetch } from "@tauri-apps/plugin-http";
+import type { InputRef } from "antd";
+import {
   Button,
   Card,
-  Checkbox,
-  Col,
   Descriptions,
-  Flex,
   Form,
   Input,
   InputNumber,
   message,
   Modal,
   Popconfirm,
-  Row,
   Select,
   Space,
   Tooltip,
-  Typography,
 } from "antd";
 import { useContext, useEffect, useRef, useState } from "react";
-import { GlobalContext } from "../../lib/GlobalProvider";
 import "../../globals.css";
-import {
-  ApartmentOutlined,
-  AppstoreOutlined,
-  BarChartOutlined,
-  ContainerOutlined,
-  MailOutlined,
-  EditOutlined,
-  SettingOutlined,
-  DeleteOutlined,
-} from "@ant-design/icons";
 import {
   ClusterData,
   ClusterDetail,
   ConfigFile,
   query,
 } from "../../lib/definies";
-import {
-  BaseDirectory,
-  exists,
-  open,
-  readTextFile,
-  writeTextFile,
-} from "@tauri-apps/plugin-fs";
-import type { FormProps, InputRef } from "antd";
-import { fetch } from "@tauri-apps/plugin-http";
-import { SpinnerDiamond } from "spinners-react";
+import { GlobalContext } from "../../lib/GlobalProvider";
 
-import { v4 as uuidv4 } from "uuid";
 import DescriptionsItem from "antd/es/descriptions/Item";
+import { v4 as uuidv4 } from "uuid";
 
 export default function Cluster() {
-  const { i18n, clusters, setClusters, currentCluster, setCurrentCluster } =
-    useContext(GlobalContext);
+  const {
+    i18n,
+    clusters,
+    setClusters,
+    currentCluster,
+    setCurrentCluster,
+    onSelectCluster,
+  } = useContext(GlobalContext);
 
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -91,6 +81,9 @@ export default function Cluster() {
   const refreshClusters = async () => {
     const clusters = await readConfigFile();
     setClusters(clusters);
+    if (clusters.length > 0) {
+      setCurrentCluster(clusters[0]);
+    }
   };
 
   //读取配置文件中的集群数据
@@ -328,17 +321,6 @@ export default function Cluster() {
     setClusterDetail(undefined);
   };
 
-  const onSelectCluster = (clusterId: string | undefined) => {
-    if (clusterId == undefined) {
-      return;
-    }
-
-    const clusterFilter = clusters.filter((item) => item.id === clusterId);
-    if (clusterFilter.length == 1) {
-      setCurrentCluster(clusterFilter[0]);
-    }
-  };
-
   return (
     <>
       {contextHolder}
@@ -365,7 +347,7 @@ export default function Cluster() {
             />
           </div>
           <div className="flex space-x-2 items-center mr-2">
-            <p className="text-base">{i18n("cluster.current_version")}</p>
+            <p className="text-base">{i18n("common.current_cluster")}</p>
             <Select
               placeholder={i18n("cluster.select_cluster")}
               value={currentCluster.id}
@@ -522,7 +504,7 @@ export default function Cluster() {
             </Descriptions>
           </Modal>
         </header>
-        <div className="flex-1 overflow-auto flex justify-center items-start pb-2 custom-scroll">
+        <div className="flex-1 overflow-auto flex justify-center items-start pb-2">
           <div className="flex flex-wrap w-full max-w-full p-2 gap-2">
             {clusters.map((item) => (
               <div

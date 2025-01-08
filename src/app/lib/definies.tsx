@@ -38,6 +38,42 @@ export type ClusterDetail = {
   version: string;
 };
 
+//节点信息
+export type NodeData = {
+  key: string;
+  ip: string;
+  name: string;
+  master: boolean;
+  role: string;
+  cpu: number;
+  ram: number;
+  heap: number;
+};
+
+//节点详情
+export type NodeDetail = {
+  id: string;
+  name: string;
+  version: string;
+  roles: string[];
+  host: string;
+  ip: string;
+  transport_address: string;
+  total_indexing_buffer: number;
+  os_name: string;
+  os_arch: string;
+  os_version: string;
+  process_id: number;
+  process_refresh_interval_in_millis: number;
+  process_mlockall: boolean;
+};
+
+//集群节点详情列表
+export type ClusterNodes = {
+  name: string;
+  nodes: NodeDetail[];
+};
+
 //读取配置文件中的集群数据
 export const readConfigFile = async () => {
   const fileExists = await exists("jointes.json", {
@@ -84,7 +120,11 @@ export const query = async (
     });
 
     if (response.ok) {
-      return await response.json();
+      const contentType = response.headers.get("content-type");
+      if (contentType?.includes("application/json")) {
+        return await response.json();
+      }
+      return await response.text();
     } else {
       console.log("query,not ok.");
       throw new Error("400");
