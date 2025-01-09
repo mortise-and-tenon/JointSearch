@@ -45,7 +45,11 @@ export default function Node() {
       key: "master",
       render: (isMaster) => (
         <>
-          {isMaster ? <Tag color={theme.Color.primary}>是</Tag> : <Tag>否</Tag>}{" "}
+          {isMaster ? (
+            <Tag color={theme.Color.primary}>{i18n("common.yes")}</Tag>
+          ) : (
+            <Tag>{i18n("common.no")}</Tag>
+          )}
         </>
       ),
       sorter: (a, b) => (a ? 1 : -1),
@@ -108,6 +112,13 @@ export default function Node() {
 
   useEffect(() => {
     queryNode();
+    const intervalQuery = setInterval(() => {
+      queryNode();
+    }, 15000);
+
+    return () => {
+      clearInterval(intervalQuery);
+    };
   }, [currentCluster]);
 
   //查询节点简要数据
