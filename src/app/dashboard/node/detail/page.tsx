@@ -1,31 +1,13 @@
 "use client";
 
-import { LeftOutlined, ReloadOutlined } from "@ant-design/icons";
-import {
-  Button,
-  Col,
-  Descriptions,
-  message,
-  Progress,
-  Row,
-  Select,
-  Skeleton,
-  Statistic,
-  Table,
-  TableProps,
-  Tag,
-} from "antd";
+import { LeftOutlined } from "@ant-design/icons";
+import { Button, Descriptions, message, Skeleton, Statistic, Tag } from "antd";
+import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 import { GlobalContext } from "../../../lib/GlobalProvider";
-import {
-  ClusterNodes,
-  NodeData,
-  NodeDetail,
-  query,
-} from "../../../lib/definies";
-import { useRouter } from "next/navigation";
+import { ClusterNodes, NodeDetail, query } from "../../../lib/definies";
 
-export default function NodeDetail() {
+export default function NodeDetailPage() {
   const router = useRouter();
   const { i18n, theme, clusters, currentCluster, onSelectCluster } =
     useContext(GlobalContext);

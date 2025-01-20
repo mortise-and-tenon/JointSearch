@@ -39,9 +39,9 @@ export default function DashboardLayout({
       title: i18n("menu.cluster"),
     },
     { key: "node", icon: <BarChartOutlined />, title: i18n("menu.node") },
-    { key: "3", icon: <ContainerOutlined />, title: "" },
+    { key: "indices", icon: <ContainerOutlined />, title: i18n("menu.indices") },
     {
-      key: "sub1",
+      key: "4",
       title: "",
       icon: <MailOutlined />,
     },

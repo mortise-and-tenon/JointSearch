@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 import { GlobalContext } from "../../lib/GlobalProvider";
 import { NodeData, query } from "../../lib/definies";
+import moment from "moment";
 
 export default function Node() {
   const router = useRouter();
@@ -27,6 +28,8 @@ export default function Node() {
 
   //节点简要数据
   const [nodeData, setNodeData] = useState<NodeData[]>([]);
+  //刷新时间
+  const [refreshDate, setRefreshDate] = useState<String>();
 
   const columns: TableProps<NodeData>["columns"] = [
     {
@@ -108,6 +111,11 @@ export default function Node() {
         />
       ),
     },
+    {
+      title: i18n("node.table_date"),
+      key: "date",
+      render: () => <p>{refreshDate}</p>,
+    },
   ];
 
   useEffect(() => {
@@ -153,9 +161,15 @@ export default function Node() {
         nodeDatas.push(node);
       });
       setNodeData(nodeDatas);
+      refreshCurrentDate();
     } catch (error) {
-      message.warning(i18n("node.query_node_error_tip"));
+      message.warning(i18n("common.query_node_error_tip"));
     }
+  };
+
+  const refreshCurrentDate = () => {
+    const str = moment().format("YYYY-MM-DD HH:mm:ss");
+    setRefreshDate(str);
   };
 
   //刷新集群节点数据展示

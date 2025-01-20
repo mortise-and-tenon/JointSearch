@@ -1,7 +1,8 @@
 {
   "menu": {
     "cluster": "集群",
-    "node": "节点"
+    "node": "节点",
+    "indices": "索引"
   },
   "modal": {
     "ok": "确定",
@@ -12,7 +13,9 @@
     "current_cluster": "当前集群",
     "yes": "是",
     "no": "否",
-    "detail": "详情"
+    "detail": "详情",
+    "query_node_error_tip": "查询数据异常",
+    "delete": "删除"
   },
   "cluster": {
     "cluster": "集群",
@@ -59,7 +62,7 @@
     "table_cpu": "CPU使用率",
     "table_ram": "内存使用率",
     "table_heap": "堆使用率",
-    "query_node_error_tip": "查询数据异常",
+    "table_date": "上次刷新时间",
     "detail": "节点详情",
     "show_detail": "查看详情",
     "detail_name": "名字",
@@ -70,12 +73,27 @@
     "detail_transport_address": "传输地址",
     "detail_total_indexing_buffer": "最大索引缓存",
     "detail_os": "操作系统",
-    "detail_os_name":"名字：",
+    "detail_os_name": "名字：",
     "detail_os_arch": "架构：",
-    "detail_os_version":"版本：",
+    "detail_os_version": "版本：",
     "detail_process": "进程",
     "detail_process_id": "ID：",
     "detail_process_refresh_interval": "刷新周期：",
     "detail_process_mlockall": "mlockall："
+  },
+  "indices": {
+    "index": "索引",
+    "total_num": "共{num}个",
+    "select_cluster": "请选择集群",
+    "create_index": "创建索引",
+    "table_name": "名字",
+    "table_health": "健康",
+    "table_status": "状态",
+    "table_docs_count": "文档",
+    "table_docs_deleted": "已删除文档",
+    "table_primary": "主分片",
+    "table_replicas": "副本",
+    "table_primary_store": "主分片占用存储",
+    "table_total_store": "占用总存储"
   }
 }

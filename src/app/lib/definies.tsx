@@ -68,6 +68,21 @@ export type NodeDetail = {
   process_mlockall: boolean;
 };
 
+//索引信息
+export type IndexData = {
+  key: React.Key;
+  name: string;
+  uuid: string;
+  health: string;
+  status: string;
+  docs_count: number;
+  docs_deleted: number;
+  primary: number;
+  replicas: number;
+  primary_store: string;
+  total_store: string;
+};
+
 //集群节点详情列表
 export type ClusterNodes = {
   name: string;
