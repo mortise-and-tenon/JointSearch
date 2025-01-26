@@ -14,8 +14,11 @@
     "yes": "是",
     "no": "否",
     "detail": "详情",
-    "query_node_error_tip": "查询数据异常",
-    "delete": "删除"
+    "query_data_error_tip": "查询数据异常",
+    "delete": "删除",
+    "unknown": "未知",
+    "api_doc": "API 文档：",
+    "convention": "约定"
   },
   "cluster": {
     "cluster": "集群",
@@ -94,6 +97,29 @@
     "table_primary": "主分片",
     "table_replicas": "副本",
     "table_primary_store": "主分片占用存储",
-    "table_total_store": "占用总存储"
+    "table_total_store": "占用总存储",
+    "modal_name": "索引名字",
+    "modal_name_tip": "请输入索引名字",
+    "modal_del_title": "删除索引",
+    "modal_del_desc": "确定删除选中的索引？",
+    "create_index_success": "创建索引成功",
+    "create_index_fail": "创建索引失败",
+    "create_index_fail_reason": "创建索引失败，原因为：{reason}。",
+    "index_name_repeat": "索引名称重复",
+    "delete_index_success": "删除索引成功",
+    "delete_index_fail": "删除索引失败",
+    "delete_index_exception": "删除索引异常",
+    "name_convention": "索引名字约定：",
+    "name_convention_tip": "名字不符合索引名字约定",
+    "alias_config": "别名配置",
+    "alias": "别名",
+    "index_config": "索引配置",
+    "shards_number": "分片数",
+    "replicas_number": "副本数",
+    "mappings_config": "映射配置",
+    "field_name": "字段名字",
+    "field_type": "字段类型",
+    "metric": "指标",
+    "default_metric": "默认指标"
   }
 }

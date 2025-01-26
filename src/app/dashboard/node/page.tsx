@@ -13,7 +13,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 import { GlobalContext } from "../../lib/GlobalProvider";
-import { NodeData, query } from "../../lib/definies";
+import { getHttp, NodeData, requestHttp } from "../../lib/definies";
 import moment from "moment";
 
 export default function Node() {
@@ -136,11 +136,15 @@ export default function Node() {
       return;
     }
     try {
-      const data: string = await query(
-        currentCluster.id,
-        "GET",
-        "/_cat/nodes?h=ip,name,master,role,cpu,ram.percent,heap.percent"
+      const response = await getHttp(
+        "/_cat/nodes?h=ip,name,master,role,cpu,ram.percent,heap.percent",
+        currentCluster.id
       );
+      if (!response.success) {
+        message.warning(i18n("common.query_data_error_tip"));
+        return;
+      }
+      const data: string = response.body;
       const lines = data.split("\n");
       const nodeDatas = new Array<NodeData>();
       lines.forEach((line, index) => {
@@ -163,7 +167,7 @@ export default function Node() {
       setNodeData(nodeDatas);
       refreshCurrentDate();
     } catch (error) {
-      message.warning(i18n("common.query_node_error_tip"));
+      message.warning(i18n("common.query_data_error_tip"));
     }
   };
 
@@ -195,46 +199,43 @@ export default function Node() {
     <>
       {contextHolder}
       <div className="h-screen flex flex-col">
-        <>
-          <header className="h-16 flex justify-between items-center">
-            <div className="flex items-center space-x-2">
-              <h1 className="text-2xl font-bold">{i18n("node.node")}</h1>
-              <span>
-                {i18n("node.total_num", { num: `${nodeData.length}` })}
-              </span>
-              <Button
-                type="text"
-                icon={<ReloadOutlined />}
-                shape="circle"
-                loading={isLoading}
-                onClick={onRefreshNode}
-              />
-              <Button type="link" onClick={onShowDetail}>
-                {i18n("node.show_detail")}
-              </Button>
-            </div>
-            <div className="flex space-x-2 items-center mr-2">
-              <p className="text-base">{i18n("common.current_cluster")}</p>
-              <Select
-                placeholder={i18n("cluster.select_cluster")}
-                value={currentCluster.id}
-                style={{ width: 120 }}
-                onChange={onSelectCluster}
-                options={clusters.map((item) => ({
-                  value: item.id,
-                  label: item.name,
-                }))}
-              />
-            </div>
-          </header>
-          <div>
-            <Table<NodeData>
-              showSorterTooltip={false}
-              columns={columns}
-              dataSource={nodeData}
+        <header className="h-16 flex justify-between items-center">
+          <div className="flex items-center space-x-2">
+            <h1 className="text-2xl font-bold">{i18n("node.node")}</h1>
+            <span>{i18n("node.total_num", { num: `${nodeData.length}` })}</span>
+            <Button
+              type="text"
+              icon={<ReloadOutlined />}
+              shape="circle"
+              loading={isLoading}
+              onClick={onRefreshNode}
+            />
+            <Button type="link" onClick={onShowDetail}>
+              {i18n("node.show_detail")}
+            </Button>
+          </div>
+          <div className="flex space-x-2 items-center mr-2">
+            <p className="text-base">{i18n("common.current_cluster")}</p>
+            <Select
+              placeholder={i18n("cluster.select_cluster")}
+              value={currentCluster.id}
+              style={{ width: 120 }}
+              onChange={onSelectCluster}
+              options={clusters.map((item) => ({
+                value: item.id,
+                label: item.name,
+              }))}
             />
           </div>
-        </>
+        </header>
+        <div className="flex-1 overflow-auto pr-2">
+          <Table<NodeData>
+            pagination={{ showSizeChanger: true }}
+            showSorterTooltip={false}
+            columns={columns}
+            dataSource={nodeData}
+          />
+        </div>
       </div>
     </>
   );

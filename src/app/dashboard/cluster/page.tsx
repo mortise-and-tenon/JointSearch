@@ -36,7 +36,8 @@ import {
   ClusterData,
   ClusterDetail,
   ConfigFile,
-  query,
+  getHttp,
+  requestHttp,
 } from "../../lib/definies";
 import { GlobalContext } from "../../lib/GlobalProvider";
 
@@ -300,16 +301,19 @@ export default function Cluster() {
 
     setIsShowInfo(true);
     try {
-      const resp = await query(id, "GET");
+      const resp = await getHttp("", id);
+      if (!resp.success) {
+        messageApi.error(i18n("cluster.query_basic_fail"));
+        return;
+      }
       const clusterDetail: ClusterDetail = {
-        name: resp["name"],
-        cluster_name: resp["cluster_name"],
-        cluster_uuid: resp["cluster_uuid"],
-        version: resp["version"]["number"],
+        name: resp.body["name"],
+        cluster_name: resp.body["cluster_name"],
+        cluster_uuid: resp.body["cluster_uuid"],
+        version: resp.body["version"]["number"],
       };
       setClusterDetail(clusterDetail);
     } catch (error) {
-      console.log("query cluster basic info error:", error);
       messageApi.error(i18n("cluster.query_basic_fail"));
       setIsShowInfo(false);
     }

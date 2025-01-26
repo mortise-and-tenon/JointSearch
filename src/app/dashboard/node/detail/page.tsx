@@ -5,7 +5,12 @@ import { Button, Descriptions, message, Skeleton, Statistic, Tag } from "antd";
 import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 import { GlobalContext } from "../../../lib/GlobalProvider";
-import { ClusterNodes, NodeDetail, query } from "../../../lib/definies";
+import {
+  ClusterNodes,
+  getHttp,
+  NodeDetail,
+  requestHttp,
+} from "../../../lib/definies";
 
 export default function NodeDetailPage() {
   const router = useRouter();
@@ -29,11 +34,12 @@ export default function NodeDetailPage() {
 
   //查询、展示集群节点详情
   const onShowDetail = async () => {
-    if (currentCluster.id == undefined) {
-      return;
-    }
     try {
-      const data = await query(currentCluster.id, "GET", "/_nodes");
+      const response = await getHttp("/_nodes", currentCluster.id);
+      if(!response.success){
+        return;
+      }
+      const data = response.body;
       const clusterNodes: ClusterNodes = {
         name: data.cluster_name,
         nodes: [],
@@ -63,7 +69,7 @@ export default function NodeDetailPage() {
       setClusterNodes(clusterNodes);
       setIsLoadingDetail(false);
     } catch (error) {
-      message.warning(i18n("node.query_node_error_tip"));
+      message.warning(i18n("node.query_data_error_tip"));
     }
   };
 

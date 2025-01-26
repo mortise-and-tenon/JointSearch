@@ -106,7 +106,39 @@ export const readConfigFile = async () => {
   return jsonData["clusters"];
 };
 
-export const query = async (
+export const getHttp = async (api: string = "", id?: string, body?: any) => {
+  if (id == undefined) {
+    throw new Error("400");
+  }
+
+  return requestHttp(id, "GET", api, body);
+};
+
+export const putHttp = async (api: string = "", id?: string, body?: any) => {
+  if (id == undefined) {
+    throw new Error("400");
+  }
+
+  return requestHttp(id, "PUT", api, body);
+};
+
+export const deleteHttp = async (api: string = "", id?: string, body?: any) => {
+  if (id == undefined) {
+    throw new Error("400");
+  }
+
+  return requestHttp(id, "DELETE", api, body);
+};
+
+export const postHttp = async (api: string = "", id?: string, body?: any) => {
+  if (id == undefined) {
+    throw new Error("400");
+  }
+
+  return requestHttp(id, "POST", api, body);
+};
+
+export const requestHttp = async (
   id: string,
   method: string,
   api: string = "",
@@ -115,37 +147,49 @@ export const query = async (
   const clusters: ClusterData[] = await readConfigFile();
   const clusterFilter = clusters.filter((item) => item.id === id);
   if (clusterFilter.length == 0) {
-    throw new Error("404");
+    throw new Error("400");
   }
   const cluster = clusterFilter[0];
   const url = `${cluster.protocol}://${cluster.host}:${cluster.port}${api}`;
 
-  const headers: HeadersInit = {};
+  const headers: HeadersInit = {
+    "content-type": "application/json",
+  };
 
   if (cluster.username != "") {
     const authValue = btoa(`${cluster.username}:${cluster.password}`);
     headers["Authorization"] = `Basic ${authValue}`;
   }
 
+  const options = {
+    method: method,
+    headers: headers,
+    body: body ? JSON.stringify(body) : null,
+  };
+
   try {
-    const response = await fetch(`${url}`, {
-      method: method,
-      headers: headers,
-      body: body ? JSON.stringify(body) : null,
-    });
+    const response = await fetch(`${url}`, options);
+
+    console.log("url:" + url);
+    console.log(options);
 
     if (response.ok) {
       const contentType = response.headers.get("content-type");
+      let body = {};
       if (contentType?.includes("application/json")) {
-        return await response.json();
+        body = await response.json();
+      } else {
+        body = await response.text();
       }
-      return await response.text();
+      return { success: true, body: body };
     } else {
-      console.log("query,not ok.");
-      throw new Error("400");
+      const body = await response.json();
+      console.log(body);
+      return { success: false, body: body };
     }
   } catch (error) {
-    console.log("query,error:", error);
-    throw new Error("400");
+    console.log("http,error");
+    console.log(error);
+    throw new Error("500");
   }
 };

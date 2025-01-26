@@ -14,8 +14,11 @@
     "yes": "Yes",
     "no": "No",
     "detail": "Detail",
-    "query_node_error_tip": "Query data abnormality",
-    "delete": "Delete"
+    "query_data_error_tip": "Query data abnormality",
+    "delete": "Delete",
+    "unknown": "Unknown",
+    "api_doc": "API Document:",
+    "convention": "Convention"
   },
   "cluster": {
     "cluster": "Cluster",
@@ -94,6 +97,26 @@
     "table_primary": "Primary",
     "table_replicas": "Replicas",
     "table_primary_store": "Primary Shard Storage",
-    "table_total_store": "Total Storage"
+    "table_total_store": "Total Storage",
+    "modal_name": "Index Name",
+    "modal_name_tip": "Please enter index name",
+    "modal_del_title": "Delete Indices",
+    "modal_del_desc": "Confirm deleting selected indices?",
+    "create_index_success": "Index created successfully.",
+    "create_index_fail": "Failed to create the index",
+    "create_index_fail_reason": "Failed to create the index. The reason is: {reason}.",
+    "index_name_repeat": "Index name duplication.",
+    "name_convention": "Index name convention:",
+    "name_convention_tip": "Name doesn't match index naming convention.",
+    "alias_config": "Aliases Configuration",
+    "alias": "Alias",
+    "index_config": "Index Configuration",
+    "shards_number": "Number Of Shards",
+    "replicas_number": "Number Of Replicas",
+    "mappings_config": "Mappings Configuration",
+    "field_name": "Field Name",
+    "field_type": "Field Type",
+    "metric": "Metircs",
+    "default_metric": "Default Metric"
   }
 }
