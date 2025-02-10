@@ -12,6 +12,7 @@ import {
 import {
   Button,
   Cascader,
+  Checkbox,
   Collapse,
   CollapseProps,
   ConfigProvider,
@@ -22,6 +23,7 @@ import {
   InputRef,
   message,
   Modal,
+  Radio,
   Select,
   Space,
   Table,
@@ -41,6 +43,8 @@ import {
 import { GlobalContext } from "../../lib/GlobalProvider";
 import ExternalLink from "../../components/ExternalLink";
 import ExternalTitle from "../../components/ExternalTitle";
+
+import "../../globals.css";
 
 export type Option = {
   label: string;
@@ -277,6 +281,17 @@ export default function Indices() {
   //是否展示聚合指标类型选择框
   const [showMetricSelect, setShowMetricSelect] = useState<boolean[]>([]);
 
+  //是否展示别名路径输入框
+  const [showAliasPath, setShowAliasPath] = useState<boolean[]>([]);
+
+  //是否展示binary参数配置
+  const [showBinaryParameter, setShowBinaryParameter] = useState<boolean[]>([]);
+
+  //是否展示completion参数配置
+  const [showCompletionParameter, setShowCompletionParameter] = useState<
+    boolean[]
+  >([]);
+
   //索引字段类型选项
   const typeOptions = [
     {
@@ -307,11 +322,35 @@ export default function Indices() {
 
   //不同的映射类型，有不同的扩展配置
   const onTypeChange = (value: string, index: number) => {
+    //不同类型对应的参数项,动态设置默认值
+    const fields = form.getFieldValue("mappings") || [];
+
     //聚合指标，展示指标、默认指标选项
     setShowMetricSelect((prev) => {
       const newSelect = [...prev];
       newSelect[index] = value === "aggregate_metric_double";
       return newSelect;
+    });
+
+    //alias,展示路径输入框
+    setShowAliasPath((prev) => {
+      const newPath = [...prev];
+      newPath[index] = value === "alias";
+      return newPath;
+    });
+
+    //binary,展示参数配置
+    setShowBinaryParameter((prev) => {
+      const binaryParam = [...prev];
+      binaryParam[index] = value === "binary";
+      return binaryParam;
+    });
+
+    //completion,展示参数配置
+    setShowCompletionParameter((prev) => {
+      const param = [...prev];
+      param[index] = value === "completion";
+      return param;
     });
   };
 
@@ -337,12 +376,29 @@ export default function Indices() {
 
     const formValues = form.getFieldsValue();
     const newItems = formValues.mappings.map((item: any, idx: number) => {
+      const defaultValue = item.default_metric ? item.default_metric : "";
       const notMatch =
-        items.find((metric) => metric.value === item.default_metric) ==
-        undefined;
+        items.find((metric) => metric.value === defaultValue) == undefined;
       //当前行匹配，且已选择默认指标值不在指标值中，清除以重选
       if (idx === index && notMatch) {
         return { ...item, default_metric: "" };
+      }
+      return item;
+    });
+
+    form.setFieldsValue({ mappings: newItems });
+  };
+
+  //选择 analyzer 后,联动 search_analyzer 默认值
+  const onSelectAnalyzer = (values: string[], index: number) => {
+    const formValues = form.getFieldsValue();
+    const newItems = formValues.mappings.map((item: any, idx: number) => {
+      //当前行匹配，且search_analyzer未选择时,处理
+      if (idx === index && !item.search_analyzer) {
+        return {
+          ...item,
+          search_analyzer: values.length == 2 ? values[1] : values[0],
+        };
       }
       return item;
     });
@@ -369,6 +425,112 @@ export default function Indices() {
       value: "value_count",
     },
   ];
+
+  //analyzer可选项
+  const analyzerOptions = [
+    {
+      label: i18n("indices.analyzer.standard"),
+      value: "standard",
+    },
+    {
+      label: i18n("indices.analyzer.simple"),
+      value: "simple",
+    },
+    {
+      label: i18n("indices.analyzer.whitespace"),
+      value: "whitespace",
+    },
+    {
+      label: i18n("indices.analyzer.stop"),
+      value: "stop",
+    },
+    {
+      label: i18n("indices.analyzer.keyword"),
+      value: "keyword",
+    },
+    {
+      label: i18n("indices.analyzer.pattern"),
+      value: "pattern",
+    },
+    {
+      label: i18n("indices.analyzer.lang"),
+      value: "",
+      children: [
+        { label: i18n("lang_analyzer.arabic"), value: "arabic" },
+        { label: i18n("lang_analyzer.armenian"), value: "armenian" },
+        { label: i18n("lang_analyzer.basque"), value: "basque" },
+        { label: i18n("lang_analyzer.bengali"), value: "bengali" },
+        { label: i18n("lang_analyzer.brazilian"), value: "brazilian" },
+        { label: i18n("lang_analyzer.bulgarian"), value: "bulgarian" },
+        { lavel: i18n("lang_analyzer.catalan"), value: "catalan" },
+        { label: i18n("lang_analyzer.cjk"), value: "cjk" },
+        { label: i18n("lang_analyzer.czech"), value: "czech" },
+        { label: i18n("lang_analyzer.danish"), value: "danish" },
+        { label: i18n("lang_analyzer.dutch"), value: "dutch" },
+        { label: i18n("lang_analyzer.english"), value: "english" },
+        { label: i18n("lang_analyzer.estonian"), value: "estonian" },
+        { label: i18n("lang_analyzer.finnish"), value: "finnish" },
+        { label: i18n("lang_analyzer.french"), value: "french" },
+        { label: i18n("lang_analyzer.galician"), value: "galician" },
+        { label: i18n("lang_analyzer.german"), value: "german" },
+        { label: i18n("lang_analyzer.greek"), value: "greek" },
+        { label: i18n("lang_analyzer.hindi"), value: "hindi" },
+        { label: i18n("lang_analyzer.hungarian"), value: "hungarian" },
+        { label: i18n("lang_analyzer.indonesian"), value: "indonesian" },
+        { label: i18n("lang_analyzer.irish"), value: "irish" },
+        { label: i18n("lang_analyzer.italian"), value: "italian" },
+        { label: i18n("lang_analyzer.latvian"), value: "latvian" },
+        { label: i18n("lang_analyzer.lithuanian"), value: "lithuanian" },
+        { label: i18n("lang_analyzer.norwegian"), value: "norwegian" },
+        { label: i18n("lang_analyzer.persian"), value: "persian" },
+        { label: i18n("lang_analyzer.portuguese"), value: "portuguese" },
+        { label: i18n("lang_analyzer.romanian"), value: "romanian" },
+        { label: i18n("lang_analyzer.russian"), value: "russian" },
+        { label: i18n("lang_analyzer.serbian"), value: "serbian" },
+        { label: i18n("lang_analyzer.sorani"), value: "sorani" },
+        { label: i18n("lang_analyzer.spanish"), value: "spanish" },
+        { label: i18n("lang_analyzer.swedish"), value: "swedish" },
+        { label: i18n("lang_analyzer.turkish"), value: "turkish" },
+        { label: i18n("lang_analyzer.thai"), value: "thai" },
+      ],
+    },
+    {
+      label: i18n("indices.analyzer.fingerprint"),
+      value: "fingerprint",
+    },
+  ];
+
+  //减少映射的项时,附加的操作
+  const minusMappingItem = (index: number) => {
+    setShowMetricSelect((prev) => {
+      prev.splice(index, 1);
+      return prev;
+    });
+
+    setShowAliasPath((prev) => {
+      prev.splice(index, 1);
+      return prev;
+    });
+
+    setShowBinaryParameter((prev) => {
+      prev.splice(index, 1);
+      return prev;
+    });
+
+    setShowCompletionParameter((prev) => {
+      prev.splice(index, 1);
+      return prev;
+    });
+  };
+
+  //清理所有额外的Form.List数据
+  const cancelModalItems = ()=>{
+    setSelectMetrics([[]]);
+    setShowMetricSelect([]);
+    setShowAliasPath([]);
+    setShowBinaryParameter([]);
+    setShowCompletionParameter([]);
+  }
 
   //创建索引的更多配置项
   const createIndexMoreItems: CollapseProps["items"] = [
@@ -447,12 +609,16 @@ export default function Indices() {
               <>
                 {fields.map((field, index) => (
                   <div key={field.key} className="flex">
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-1">
                       <Form.Item
                         label={i18n("indices.field_name")}
                         name={[field.name, "name"]}
                         style={{
-                          width: showMetricSelect[index] ? "80px" : "200px",
+                          width:
+                            showMetricSelect[index] ||
+                            showCompletionParameter[index]
+                              ? "80px"
+                              : "200px",
                         }}
                       >
                         <Input />
@@ -461,7 +627,12 @@ export default function Indices() {
                         label={i18n("indices.field_type")}
                         name={[field.name, "type"]}
                         style={{
-                          width: showMetricSelect[index] ? "80px" : "200px",
+                          width: showMetricSelect[index]
+                            ? "100px"
+                            : showBinaryParameter[index] ||
+                              showCompletionParameter[index]
+                            ? "120px"
+                            : "200px",
                         }}
                       >
                         <Select
@@ -491,6 +662,205 @@ export default function Indices() {
                           </Form.Item>
                         </>
                       )}
+                      {showAliasPath[index] && (
+                        <Form.Item
+                          label={i18n("indices.alias_path")}
+                          name={[field.name, "path"]}
+                          style={{ width: "200px" }}
+                        >
+                          <Input />
+                        </Form.Item>
+                      )}
+                      {showBinaryParameter[index] && (
+                        <>
+                          <Form.Item
+                            label={i18n("indices.binary_doc_values")}
+                            tooltip={i18n("indices.binary_doc_values_tip")}
+                            name={[field.name, "doc_values"]}
+                            style={{ width: "120px" }}
+                            initialValue={false}
+                          >
+                            <Radio.Group
+                              block
+                              options={[
+                                {
+                                  value: true,
+                                  label: i18n("indices.parameter_true"),
+                                },
+                                {
+                                  value: false,
+                                  label: i18n("indices.parameter_false"),
+                                },
+                              ]}
+                              defaultValue={false}
+                              optionType="button"
+                              buttonStyle="solid"
+                            />
+                          </Form.Item>
+                          <Form.Item
+                            label={i18n("indices.binary_store")}
+                            tooltip={i18n("indices.binary_store_tip")}
+                            name={[field.name, "store"]}
+                            style={{ width: "120px" }}
+                            initialValue={false}
+                          >
+                            <Radio.Group
+                              block
+                              options={[
+                                {
+                                  value: true,
+                                  label: i18n("indices.parameter_true"),
+                                },
+                                {
+                                  value: false,
+                                  label: i18n("indices.parameter_false"),
+                                },
+                              ]}
+                              defaultValue={false}
+                              optionType="button"
+                              buttonStyle="solid"
+                            />
+                          </Form.Item>
+                        </>
+                      )}
+                      {showCompletionParameter[index] && (
+                        <div>
+                          <div className="flex flex-row space-x-1">
+                            <Form.Item
+                              label={i18n("indices.analyzer_param")}
+                              tooltip={i18n("indices.analyzer_tip")}
+                              name={[field.name, "analyzer"]}
+                              style={{ minWidth: "100px" }}
+                              getValueProps={(value) => {
+                                if (Array.isArray(value)) {
+                                  return value.length == 2
+                                    ? value[1]
+                                    : value[0];
+                                }
+                                return value;
+                              }}
+                              normalize={(value) => {
+                                if (Array.isArray(value)) {
+                                  return value.length == 2
+                                    ? value[1]
+                                    : value[0];
+                                }
+                                return value;
+                              }}
+                              initialValue="simple"
+                            >
+                              <Cascader
+                                allowClear={false}
+                                defaultValue={["simple"]}
+                                options={analyzerOptions}
+                                onChange={(value) =>
+                                  onSelectAnalyzer(value, index)
+                                }
+                              />
+                            </Form.Item>
+                            <Form.Item
+                              label={i18n("indices.search_analyzer")}
+                              tooltip={i18n("indices.search_analyzer_tip")}
+                              name={[field.name, "search_analyzer"]}
+                              style={{ minWidth: "100px" }}
+                              getValueProps={(value) => {
+                                if (Array.isArray(value)) {
+                                  return value.length == 2
+                                    ? value[1]
+                                    : value[0];
+                                }
+                                return value;
+                              }}
+                              normalize={(value) => {
+                                if (Array.isArray(value)) {
+                                  return value.length == 2
+                                    ? value[1]
+                                    : value[0];
+                                }
+                                return value;
+                              }}
+                              initialValue="simple"
+                            >
+                              <Cascader
+                                allowClear={false}
+                                defaultValue={["simple"]}
+                                options={analyzerOptions}
+                              />
+                            </Form.Item>
+                            <Form.Item
+                              label={i18n(
+                                "indices.completion_max_input_length"
+                              )}
+                              tooltip={i18n(
+                                "indices.completion_max_input_length_tip"
+                              )}
+                              name={[field.name, "max_input_length"]}
+                              initialValue={50}
+                            >
+                              <InputNumber min={1} />
+                            </Form.Item>
+                          </div>
+                          <div className="flex flex-row">
+                            <Form.Item
+                              label={i18n(
+                                "indices.completion_preserve_separators"
+                              )}
+                              tooltip={i18n(
+                                "indices.completion_preserve_separators_tip"
+                              )}
+                              name={[field.name, "preserve_separators"]}
+                              style={{ minWidth: "80px" }}
+                              initialValue={true}
+                            >
+                              <Radio.Group
+                                options={[
+                                  {
+                                    value: true,
+                                    label: i18n("indices.parameter_true"),
+                                  },
+                                  {
+                                    value: false,
+                                    label: i18n("indices.parameter_false"),
+                                  },
+                                ]}
+                                defaultValue={false}
+                                optionType="button"
+                                buttonStyle="solid"
+                              />
+                            </Form.Item>
+                            <Form.Item
+                              label={i18n(
+                                "indices.completion_preserve_position_increments"
+                              )}
+                              tooltip={i18n(
+                                "indices.completion_preserve_position_increments_tip"
+                              )}
+                              name={[
+                                field.name,
+                                "preserve_position_increments",
+                              ]}
+                              style={{ minWidth: "80px" }}
+                              initialValue={true}
+                            >
+                              <Radio.Group
+                                options={[
+                                  {
+                                    value: true,
+                                    label: i18n("indices.parameter_true"),
+                                  },
+                                  {
+                                    value: false,
+                                    label: i18n("indices.parameter_false"),
+                                  },
+                                ]}
+                                defaultValue={true}
+                                optionType="button"
+                                buttonStyle="solid"
+                              />
+                            </Form.Item>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {index === 0 ? (
@@ -509,10 +879,7 @@ export default function Indices() {
                           size="small"
                           onClick={() => {
                             remove(field.name);
-                            setShowMetricSelect((prev) => {
-                              prev.splice(index, 1);
-                              return prev;
-                            });
+                            minusMappingItem(index);
                           }}
                           icon={<MinusOutlined />}
                         />
@@ -545,7 +912,7 @@ export default function Indices() {
   const onOk = () => {
     form.validateFields().then(async (values: any) => {
       console.log(values);
-      // return;
+      return;
       setIsCreating(true);
       try {
         const response = await putHttp(
@@ -587,10 +954,9 @@ export default function Indices() {
   //取消创建索引
   const onCancel = () => {
     form.resetFields();
-    setShowMetricSelect([]);
-    setSelectMetrics([[]]);
     setIsModalOpen(false);
     setIsCreating(false);
+    cancelModalItems()
   };
 
   //弹出删除索引确认框
@@ -723,7 +1089,7 @@ export default function Indices() {
                     <div>
                       <span>{i18n("indices.name_convention")}</span>
                       <ExternalLink url="https://elasticsearch.bookhub.tech/rest_apis/index_apis/create_index#%E8%B7%AF%E5%BE%84%E5%8F%82%E6%95%B0">
-                        {i18n("indices.convention")}
+                        {i18n("common.doc")}
                       </ExternalLink>
                     </div>
                   }

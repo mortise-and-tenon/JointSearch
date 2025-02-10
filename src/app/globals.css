@@ -43,3 +43,11 @@ body {
 ::-webkit-scrollbar-button {
   display: none; /* 隐藏滚动条的上下箭头按钮 */
 }
+
+.custom-label {
+  display: inline-block;
+  max-width: 80px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
