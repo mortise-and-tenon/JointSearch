@@ -132,7 +132,7 @@ export default function Node() {
   //查询节点简要数据
   const queryNode = async () => {
     if (currentCluster.id == undefined) {
-      messageApi.warning(i18n("node.select_cluster"));
+      messageApi.warning(i18n("common.select_cluster"));
       return;
     }
     try {
@@ -217,7 +217,7 @@ export default function Node() {
           <div className="flex space-x-2 items-center mr-2">
             <p className="text-base">{i18n("common.current_cluster")}</p>
             <Select
-              placeholder={i18n("cluster.select_cluster")}
+              placeholder={i18n("common.select_cluster")}
               value={currentCluster.id}
               style={{ width: 120 }}
               onChange={onSelectCluster}

@@ -353,7 +353,7 @@ export default function Cluster() {
           <div className="flex space-x-2 items-center mr-2">
             <p className="text-base">{i18n("common.current_cluster")}</p>
             <Select
-              placeholder={i18n("cluster.select_cluster")}
+              placeholder={i18n("common.select_cluster")}
               value={currentCluster.id}
               style={{ width: 120 }}
               onChange={onSelectCluster}
