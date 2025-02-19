@@ -181,12 +181,12 @@
     "script_tip": "如果设置了该参数，则该字段将索引由该脚本生成的值，而不是直接从源代码中读取值。如果在输入文档中为该字段设置了值，那么文档将报错并拒绝。",
     "parameter_true": "是",
     "parameter_false": "否",
-    "meta":"meta",
-    "meta_tip":"字段的元数据。",
-    "on_script_error":"on_script_error",
-    "on_script_error_tip":"定义如果 script 参数定义的脚本在建立索引时出错该如何处理。",
-    "time_series_dimension":"time_series_dimension",
-    "time_series_dimension_tip":"将字段标记为时序维度。doc_values 和 index 映射参数必须为是。",
+    "meta": "meta",
+    "meta_tip": "字段的元数据。",
+    "on_script_error": "on_script_error",
+    "on_script_error_tip": "定义如果 script 参数定义的脚本在建立索引时出错该如何处理。",
+    "time_series_dimension": "time_series_dimension",
+    "time_series_dimension_tip": "将字段标记为时序维度。doc_values 和 index 映射参数必须为是。",
     "analyzer": {
       "standard": "standard",
       "simple": "simple",
@@ -208,6 +208,7 @@
     "completion_max_input_length": "max_input_length",
     "completion_max_input_length_tip": "限制单个输入的长度，默认为 50 个 UTF-16 码点。",
     "date_format": "format",
+    "date_format_tip": "可以解析的日期格式。",
     "date_format_custom": "自定义格式",
     "date_custom": "自定义",
     "unit_percent": "百分比",
@@ -218,6 +219,15 @@
     "unit_second": "秒",
     "unit_millisecond": "毫秒",
     "unit_microsecond": "微秒",
-    "unit_nanosecond": "纳秒"
+    "unit_nanosecond": "纳秒",
+    "locale": "locale",
+    "locale_tip": "解析日期时使用的地域，因为月份在所有语言中的名称和/或缩写不尽相同。",
+    "param_index_knn_tip": "如果为是，则可以使用 kNN 搜索 API 搜索该字段。",
+    "element_type": "element_type",
+    "element_type_tip": "用于对向量进行编码的数据类型。",
+    "dims": "dims",
+    "dims_tip": "向量维度数。不能超过 4096。如果未指定 dims，则将其设置为添加到字段的第一个向量的长度。",
+    "similarity":"similarity",
+    "similarity_tip":"用于 kNN 搜索的向量相似度量。文档按照其向量场与查询向量的相似度进行排序。"
   }
 }

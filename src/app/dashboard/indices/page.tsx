@@ -54,6 +54,21 @@ export type Option = {
   value: string;
 };
 
+//mapping 类型
+export type MappingType = {
+  aggregate_metric?: boolean;
+  alias?: boolean;
+  binary?: boolean;
+  bool?: boolean;
+  completion?: boolean;
+  date?: boolean;
+  date_nanos?: boolean;
+  dense_vector?: boolean;
+  timeSeriesDimensionDisabled?: boolean;
+  scriptUsed?: boolean;
+  similarityDisabled?: boolean;
+};
+
 export default function Indices() {
   const {
     i18n,
@@ -308,27 +323,10 @@ export default function Indices() {
     },
   };
 
-  //是否展示聚合指标类型选择框
-  const [showMetricParameter, setShowMetricParameter] = useState<boolean[]>([]);
-
-  //是否展示别名参数配置
-  const [showAliasParameter, setShowAliasParameter] = useState<boolean[]>([]);
-
-  //是否展示binary参数配置
-  const [showBinaryParameter, setShowBinaryParameter] = useState<boolean[]>([]);
-
-  //是否展示boolean参数配置
-  const [showBooleanParameter, setShowBooleanParameter] = useState<boolean[]>(
-    []
-  );
-
-  //是否展示completion参数配置
-  const [showCompletionParameter, setShowCompletionParameter] = useState<
-    boolean[]
-  >([]);
-
-  //是否展示date参数配置
-  const [showDateParameter, setShowDateParameter] = useState<boolean[]>([]);
+  //记录类型对应的参数是否展示
+  const [typeRecords, setTypeRecords] = useState<MappingType[]>([
+    { aggregate_metric: false },
+  ]);
 
   //索引字段类型选项
   const typeOptions = [
@@ -356,51 +354,71 @@ export default function Indices() {
       value: "date",
       label: "date",
     },
+    {
+      value: "date_nanos",
+      label: "date_nanos",
+    },
+    {
+      value: "dense_vector",
+      label: "dense_vector",
+    },
   ];
 
   //不同的映射类型，有不同的扩展配置
   const onTypeChange = (value: string, index: number) => {
-    //聚合指标，展示指标、默认指标选项
-    setShowMetricParameter((prev) => {
-      const newSelect = [...prev];
-      newSelect[index] = value === "aggregate_metric_double";
-      return newSelect;
+    setTypeRecords((prev) => {
+      const record = [...prev];
+      record[index].aggregate_metric = value === "aggregate_metric_double";
+      record[index].alias = value === "alias";
+      record[index].binary = value === "binary";
+      record[index].bool = value === "boolean";
+      record[index].completion = value === "completion";
+      record[index].date = value === "date";
+      record[index].date_nanos = value === "date_nanos";
+      record[index].dense_vector = value === "dense_vector";
+      return record;
     });
 
-    //alias,展示路径输入框
-    setShowAliasParameter((prev) => {
-      const newPath = [...prev];
-      newPath[index] = value === "alias";
-      return newPath;
+    //类型变化，调整组件默认值
+    const formValues = form.getFieldsValue();
+    const newItems = formValues.mappings.map((item: any, idx: number) => {
+      if (idx === index) {
+        switch (value) {
+          case "binary":
+            item.doc_values = false;
+            item.store = false;
+            break;
+          case "boolean":
+            item.doc_values = false;
+            item.store = false;
+            item.ignore_malformed = false;
+            item.index = true;
+            break;
+          case "date":
+            item.doc_values = false;
+            item.store = false;
+            item.ignore_malformed = false;
+            item.index = true;
+            item.format = ["strict_date_optional_time", "epoch_millis"];
+            break;
+          case "date_nanos":
+            item.format = ["strict_date_optional_time_nanos", "epoch_millis"];
+            break;
+          case "dense_vector":
+            item.index = true;
+            item.element_type = "float";
+            item.similarity = "cosine";
+            item.similarityDisabled = false;
+            break;
+          default:
+            break;
+        }
+      }
+
+      return item;
     });
 
-    //binary,展示参数配置
-    setShowBinaryParameter((prev) => {
-      const param = [...prev];
-      param[index] = value === "binary";
-      return param;
-    });
-
-    //boolean，展示参数配置
-    setShowBooleanParameter((prev) => {
-      const param = [...prev];
-      param[index] = value === "boolean";
-      return param;
-    });
-
-    //completion,展示参数配置
-    setShowCompletionParameter((prev) => {
-      const param = [...prev];
-      param[index] = value === "completion";
-      return param;
-    });
-
-    //date,展示参数配置
-    setShowDateParameter((prev) => {
-      const param = [...prev];
-      param[index] = value === "date";
-      return param;
-    });
+    form.setFieldsValue({ mappings: newItems });
   };
 
   //选中的聚合维度值
@@ -464,20 +482,24 @@ export default function Indices() {
   //script 是否被使用
   const [scriptUsed, setScriptUsed] = useState<boolean[]>([]);
 
+  //similarity，index 为是时，才可用
+  const [similarityDisabled, setSimilarityDisabled] = useState<boolean[]>([]);
+
   //doc_values 和 index 同时为 true时，才可操作 time_series_dimension
   const onChangeDocValuesOrIndex = (index: number) => {
     const formValues = form.getFieldsValue();
     const newItems = formValues.mappings.map((item: any, idx: number) => {
       if (idx === index) {
         const isTrue = item.doc_values && item.index;
-        setTimeSeriesDimensionDisable((prev) => {
-          const newStatus = [...prev];
-          newStatus[index] = !isTrue;
-          return newStatus;
-        });
+        item.timeSeriesDimensionDisabled = !isTrue;
         //如果time_series_dimension不可操作，值调整为默认值
         if (!isTrue) {
           item.time_series_dimension = false;
+        }
+
+        //index 为 true 时，similarity 才可操作
+        if (item.type === "dense_vector") {
+          item.similarityDisalbed = !item.index;
         }
       }
 
@@ -508,6 +530,34 @@ export default function Indices() {
         } else {
           //如果script未配置，on_script_error值调整为默认值
           item.on_script_error = "fail";
+        }
+      }
+
+      return item;
+    });
+
+    form.setFieldsValue({ mappings: newItems });
+  };
+
+  //element_type 变化后，会影响 similarity 的默认值
+  const onChangeElementType = (value: string, index: number) => {
+    const formValues = form.getFieldsValue();
+    const newItems = formValues.mappings.map((item: any, idx: number) => {
+      if (idx === index) {
+        if (value === "bit") {
+          item.similarity = "l2_norm";
+          setSimilarityDisabled((prev) => {
+            const newStatus = [...prev];
+            newStatus[index] = true;
+            return newStatus;
+          });
+        } else {
+          item.similarity = "cosine";
+          setSimilarityDisabled((prev) => {
+            const newStatus = [...prev];
+            newStatus[index] = false;
+            return newStatus;
+          });
         }
       }
 
@@ -973,27 +1023,7 @@ export default function Indices() {
 
   //减少映射的项时,附加的操作
   const minusMappingItem = (index: number) => {
-    setShowMetricParameter((prev) => {
-      prev.splice(index, 1);
-      return prev;
-    });
-
-    setShowAliasParameter((prev) => {
-      prev.splice(index, 1);
-      return prev;
-    });
-
-    setShowBinaryParameter((prev) => {
-      prev.splice(index, 1);
-      return prev;
-    });
-
-    setShowCompletionParameter((prev) => {
-      prev.splice(index, 1);
-      return prev;
-    });
-
-    setShowDateParameter((prev) => {
+    setTypeRecords((prev) => {
       prev.splice(index, 1);
       return prev;
     });
@@ -1001,14 +1031,9 @@ export default function Indices() {
 
   //清理所有额外的Form.List数据
   const cancelModalItems = () => {
+    setTypeRecords([{ aggregate_metric: false }]);
     setSelectMetrics([[]]);
-    setShowMetricParameter([]);
-    setShowAliasParameter([]);
-    setShowBinaryParameter([]);
-    setShowBooleanParameter([]);
     setTimeSeriesDimensionDisable([]);
-    setShowCompletionParameter([]);
-    setShowDateParameter([]);
   };
 
   //mappings 中Form.List的添加行方法的引用
@@ -1133,7 +1158,7 @@ export default function Indices() {
                             />
                           </Form.Item>
 
-                          {showMetricParameter[index] && (
+                          {typeRecords[index].aggregate_metric && (
                             <>
                               <Form.Item
                                 label={i18n("indices.metrics")}
@@ -1180,7 +1205,7 @@ export default function Indices() {
                               </Form.Item>
                             </>
                           )}
-                          {showAliasParameter[index] && (
+                          {typeRecords[index].alias && (
                             <Form.Item
                               label={i18n("indices.alias_path")}
                               tooltip={i18n("indices.alias_path_tip")}
@@ -1191,9 +1216,9 @@ export default function Indices() {
                               <Input />
                             </Form.Item>
                           )}
-                          {(showBinaryParameter[index] ||
-                            showBooleanParameter[index] ||
-                            showDateParameter[index]) && (
+                          {(typeRecords[index].binary ||
+                            typeRecords[index].bool ||
+                            typeRecords[index].date) && (
                             <>
                               <Form.Item
                                 label={i18n("indices.doc_values")}
@@ -1248,7 +1273,7 @@ export default function Indices() {
                               </Form.Item>
                             </>
                           )}
-                          {showCompletionParameter[index] && (
+                          {typeRecords[index].completion && (
                             <>
                               <Form.Item
                                 label={i18n("indices.analyzer_param")}
@@ -1383,8 +1408,8 @@ export default function Indices() {
                               </Form.Item>
                             </>
                           )}
-                          {(showBooleanParameter[index] ||
-                            showDateParameter[index]) && (
+                          {(typeRecords[index].bool ||
+                            typeRecords[index].date) && (
                             <>
                               <Form.Item
                                 label={i18n("indices.ignore_malformed")}
@@ -1411,11 +1436,21 @@ export default function Indices() {
                                   disabled={scriptUsed[index]}
                                 />
                               </Form.Item>
+                            </>
+                          )}
+                          {(typeRecords[index].bool ||
+                            typeRecords[index].date ||
+                            typeRecords[index].dense_vector) && (
+                            <>
                               <Form.Item
                                 label={i18n("indices.parameter_index")}
-                                tooltip={i18n("indices.parameter_index_tip")}
+                                tooltip={
+                                  typeRecords[index].dense_vector
+                                    ? i18n("indices.param_index_knn_tip")
+                                    : i18n("indices.parameter_index_tip")
+                                }
                                 name={[field.name, "index"]}
-                                initialValue={false}
+                                initialValue={true}
                                 style={{ minWidth: "120px" }}
                               >
                                 <Radio.Group
@@ -1430,7 +1465,7 @@ export default function Indices() {
                                       label: i18n("indices.parameter_false"),
                                     },
                                   ]}
-                                  defaultValue={false}
+                                  defaultValue={true}
                                   optionType="button"
                                   buttonStyle="solid"
                                   onChange={() =>
@@ -1438,39 +1473,45 @@ export default function Indices() {
                                   }
                                 />
                               </Form.Item>
-                              <Form.Item
-                                label={i18n("indices.time_series_dimension")}
-                                tooltip={i18n(
-                                  "indices.time_series_dimension_tip"
-                                )}
-                                name={[field.name, "time_series_dimension"]}
-                                style={{
-                                  minWidth: "120px",
-                                }}
-                                initialValue={false}
-                              >
-                                <Radio.Group
-                                  block
-                                  options={[
-                                    {
-                                      value: true,
-                                      label: i18n("indices.parameter_true"),
-                                    },
-                                    {
-                                      value: false,
-                                      label: i18n("indices.parameter_false"),
-                                    },
-                                  ]}
-                                  defaultValue={false}
-                                  optionType="button"
-                                  buttonStyle="solid"
-                                  disabled={
-                                    timeSeriesDimensionDisable[index] ||
-                                    timeSeriesDimensionDisable[index] ==
-                                      undefined
-                                  }
-                                />
-                              </Form.Item>
+                            </>
+                          )}
+                          {typeRecords[index].bool && (
+                            <Form.Item
+                              label={i18n("indices.time_series_dimension")}
+                              tooltip={i18n(
+                                "indices.time_series_dimension_tip"
+                              )}
+                              name={[field.name, "time_series_dimension"]}
+                              style={{
+                                minWidth: "120px",
+                              }}
+                              initialValue={false}
+                            >
+                              <Radio.Group
+                                block
+                                options={[
+                                  {
+                                    value: true,
+                                    label: i18n("indices.parameter_true"),
+                                  },
+                                  {
+                                    value: false,
+                                    label: i18n("indices.parameter_false"),
+                                  },
+                                ]}
+                                defaultValue={false}
+                                optionType="button"
+                                buttonStyle="solid"
+                                disabled={
+                                  typeRecords[index].timeSeriesDimensionDisabled ||
+                                  typeRecords[index].timeSeriesDimensionDisabled == undefined
+                                }
+                              />
+                            </Form.Item>
+                          )}
+                          {(typeRecords[index].bool ||
+                            typeRecords[index].date) && (
+                            <>
                               <Form.Item
                                 label={i18n("indices.null_value")}
                                 tooltip={i18n("indices.null_value_tip")}
@@ -1582,16 +1623,25 @@ export default function Indices() {
                               />
                             </>
                           )}
-                          {showDateParameter[index] && (
+                          {(typeRecords[index].date ||
+                            typeRecords[index].date_nanos) && (
                             <>
                               <Form.Item
                                 label={i18n("indices.date_format")}
+                                tooltip={i18n("indices.date_format_tip")}
                                 name={[field.name, "format"]}
                                 style={{ minWidth: "100px" }}
-                                initialValue={[
-                                  "strict_date_optional_time",
-                                  "epoch_millis",
-                                ]}
+                                initialValue={
+                                  typeRecords[index].date
+                                    ? [
+                                        "strict_date_optional_time",
+                                        "epoch_millis",
+                                      ]
+                                    : [
+                                        "strict_date_optional_time_nanos",
+                                        "epoch_millis",
+                                      ]
+                                }
                               >
                                 <Select
                                   mode="multiple"
@@ -1600,8 +1650,13 @@ export default function Indices() {
                                   options={dateOptions}
                                 />
                               </Form.Item>
+                            </>
+                          )}
+                          {typeRecords[index].date && (
+                            <>
                               <Form.Item
-                                label="locale"
+                                label={i18n("indices.locale")}
+                                tooltip={i18n("indices.locale_tip")}
                                 name={[field.name, "locale"]}
                                 style={{
                                   minWidth: "120px",
@@ -1611,6 +1666,63 @@ export default function Indices() {
                                 <Input
                                   defaultValue="ENGLISH"
                                   style={{ width: "120px" }}
+                                />
+                              </Form.Item>
+                            </>
+                          )}
+                          {typeRecords[index].dense_vector && (
+                            <>
+                              <Form.Item
+                                label={i18n("indices.element_type")}
+                                tooltip={i18n("indices.element_type_tip")}
+                                name={[field.name, "element_type"]}
+                                style={{ minWidth: "100px" }}
+                                initialValue={"float"}
+                              >
+                                <Select
+                                  defaultValue={"float"}
+                                  options={[
+                                    { label: "float", value: "float" },
+                                    { label: "byte", value: "byte" },
+                                    { label: "bit", value: "bit" },
+                                  ]}
+                                  onChange={(e) =>
+                                    onChangeElementType(e, index)
+                                  }
+                                />
+                              </Form.Item>
+                              <Form.Item
+                                label={i18n("indices.dims")}
+                                tooltip={i18n("indices.dims_tip")}
+                                name={[field.name, "dims"]}
+                              >
+                                <InputNumber
+                                  max={4096}
+                                  style={{ minWidth: "120px" }}
+                                />
+                              </Form.Item>
+                              <Form.Item
+                                label={i18n("indices.similarity")}
+                                tooltip={i18n("indices.similarity_tip")}
+                                name={[field.name, "similarity"]}
+                                style={{ minWidth: "100px" }}
+                                initialValue="cosine"
+                              >
+                                <Select
+                                  disabled={similarityDisabled[index]}
+                                  defaultValue="cosine"
+                                  options={[
+                                    { label: "l2_norm", value: "l2_norm" },
+                                    {
+                                      label: "dot_product",
+                                      value: "dot_product",
+                                    },
+                                    { label: "cosine", value: "cosine" },
+                                    {
+                                      label: "max_inner_product",
+                                      value: "max_inner_product",
+                                    },
+                                  ]}
                                 />
                               </Form.Item>
                             </>
