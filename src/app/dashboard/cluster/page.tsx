@@ -20,6 +20,7 @@ import {
   Button,
   Card,
   Descriptions,
+  Empty,
   Form,
   Input,
   InputNumber,
@@ -192,7 +193,7 @@ export default function Cluster() {
   const onCancel = () => {
     form.resetFields();
     setIsModalOpen(false);
-    setIsEdit(true);
+    setIsEdit(false);
   };
 
   //点击测试连接按钮
@@ -218,6 +219,10 @@ export default function Cluster() {
         const response = await fetch(`${url}`, {
           method: "GET",
           headers: headers,
+          // danger: {
+          //   acceptInvalidCerts: true,
+          //   acceptInvalidHostnames: true
+          // }
         });
 
         if (response.ok) {
@@ -510,6 +515,10 @@ export default function Cluster() {
         </header>
         <div className="flex-1 overflow-auto flex justify-center items-start pb-2">
           <div className="flex flex-wrap w-full max-w-full p-2 gap-2">
+            {clusters.length == 0 && (
+              <div className="w-full">
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              </div>)}
             {clusters.map((item) => (
               <div
                 key={item.name}

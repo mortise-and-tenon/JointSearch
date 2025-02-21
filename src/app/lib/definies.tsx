@@ -168,10 +168,10 @@ export const requestHttp = async (
   };
 
   try {
-    const response = await fetch(`${url}`, options);
-
     console.log("url:" + url);
     console.log(options);
+
+    const response = await fetch(`${url}`, options);
 
     if (response.ok) {
       const contentType = response.headers.get("content-type");
