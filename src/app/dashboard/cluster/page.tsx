@@ -3,18 +3,13 @@
 import {
   DeleteOutlined,
   EditOutlined,
+  LockOutlined,
   PlusOutlined,
   ProfileOutlined,
   QuestionCircleOutlined,
   ReloadOutlined,
+  UnlockOutlined,
 } from "@ant-design/icons";
-import {
-  BaseDirectory,
-  exists,
-  readTextFile,
-  writeTextFile,
-} from "@tauri-apps/plugin-fs";
-import { fetch } from "@tauri-apps/plugin-http";
 import type { InputRef } from "antd";
 import {
   Button,
@@ -37,8 +32,10 @@ import {
   ClusterData,
   ClusterDetail,
   ConfigFile,
+  fetchHttp,
   getHttp,
-  requestHttp,
+  readConfigFile,
+  writeConfigData,
 } from "../../lib/definies";
 import { GlobalContext } from "../../lib/GlobalProvider";
 
@@ -69,6 +66,8 @@ export default function Cluster() {
   const [isShowInfo, setIsShowInfo] = useState(false);
   //集群详情
   const [clusterDetail, setClusterDetail] = useState<ClusterDetail>();
+  //https证书是否校验
+  const [tlsVerify, setTlsVerify] = useState(true);
 
   const [form] = Form.useForm();
   //集群名称引用
@@ -81,28 +80,13 @@ export default function Cluster() {
 
   //刷新集群列表
   const refreshClusters = async () => {
-    const clusters = await readConfigFile();
+    const configFile: ConfigFile = await readConfigFile();
+    const clusters: ClusterData[] = configFile["clusters"];
+
     setClusters(clusters);
     if (clusters.length > 0) {
       setCurrentCluster(clusters[0]);
     }
-  };
-
-  //读取配置文件中的集群数据
-  const readConfigFile = async () => {
-    const fileExists = await exists("jointes.json", {
-      baseDir: BaseDirectory.Home,
-    });
-    if (!fileExists) {
-      return [];
-    }
-
-    const jsonContent = await readTextFile("jointes.json", {
-      baseDir: BaseDirectory.Home,
-    });
-
-    const jsonData = JSON.parse(jsonContent);
-    return jsonData["clusters"];
   };
 
   //初始表单数据
@@ -118,6 +102,17 @@ export default function Cluster() {
   const showAddModal = async () => {
     setIsModalOpen(true);
   };
+
+  //点击切换https证书是否校验
+  const onClickSwitchTlsVerify = () => {
+    setTlsVerify((pre) => {
+      return !pre;
+    });
+  };
+
+  useEffect(() => {
+    form.setFieldsValue({ verify: tlsVerify });
+  }, [tlsVerify]);
 
   //点击保存集群
   const onOk = () => {
@@ -154,15 +149,14 @@ export default function Cluster() {
 
   //保存集群配置
   const addClusterToConfigFile = async (data: ClusterData) => {
-    const clusters: ClusterData[] = await readConfigFile();
+    const configFile: ConfigFile = await readConfigFile();
+    const clusters: ClusterData[] = configFile["clusters"];
     clusters.push(data);
     const file: ConfigFile = {
       clusters: clusters,
     };
 
-    await writeTextFile("jointes.json", JSON.stringify(file, null, 2), {
-      baseDir: BaseDirectory.Home,
-    });
+    await writeConfigData(file);
   };
 
   //更新集群配置
@@ -173,7 +167,8 @@ export default function Cluster() {
       return newList;
     });
 
-    const clusters: ClusterData[] = await readConfigFile();
+    const configFile: ConfigFile = await readConfigFile();
+    const clusters: ClusterData[] = configFile["clusters"];
 
     const newClusters = clusters.filter((item) => item.id != data.id);
     newClusters.push(data);
@@ -182,9 +177,7 @@ export default function Cluster() {
       clusters: newClusters,
     };
 
-    await writeTextFile("jointes.json", JSON.stringify(file, null, 2), {
-      baseDir: BaseDirectory.Home,
-    });
+    await writeConfigData(file);
 
     messageApi.success(i18n("cluster.update_success"));
   };
@@ -194,6 +187,7 @@ export default function Cluster() {
     form.resetFields();
     setIsModalOpen(false);
     setIsEdit(false);
+    setTlsVerify(true);
   };
 
   //点击测试连接按钮
@@ -216,23 +210,27 @@ export default function Cluster() {
       }
 
       try {
-        const response = await fetch(`${url}`, {
+        const options = {
           method: "GET",
+          disabled: true,
+          url: `${url}`,
           headers: headers,
-          // danger: {
-          //   acceptInvalidCerts: true,
-          //   acceptInvalidHostnames: true
-          // }
-        });
+        };
 
-        if (response.ok) {
-          const body = await response.json();
+        const response = await fetchHttp(options);
+
+        console.log(response.body);
+
+        if (response.status == 200) {
+          const body = JSON.parse(response.body);
           console.log(body["version"]["number"]);
           messageApi.success(
             i18n("cluster.modal_test_success", {
               number: body["version"]["number"],
             })
           );
+        } else if (response.status == 401) {
+          messageApi.error(i18n("cluster.modal_test_fail_401"));
         } else {
           messageApi.error(i18n("cluster.modal_test_fail"));
         }
@@ -253,15 +251,14 @@ export default function Cluster() {
 
     setClusters((pre) => pre.filter((item) => item.id != id));
 
-    const clusters: ClusterData[] = await readConfigFile();
+    const configFile: ConfigFile = await readConfigFile();
+    const clusters: ClusterData[] = configFile["clusters"];
 
     const file: ConfigFile = {
       clusters: clusters.filter((item) => item.id != id),
     };
 
-    await writeTextFile("jointes.json", JSON.stringify(file, null, 2), {
-      baseDir: BaseDirectory.Home,
-    });
+    await writeConfigData(file);
 
     messageApi.success(i18n("cluster.delete_success"));
   };
@@ -291,11 +288,14 @@ export default function Cluster() {
       id: cluster.id,
       name: cluster.name,
       protocol: cluster.protocol,
+      verify: cluster.verify,
       host: cluster.host,
       port: cluster.port,
       username: cluster.username,
       password: cluster.password,
     });
+
+    setTlsVerify(cluster.verify != undefined ? cluster.verify : true);
   };
 
   //展示集群信息
@@ -309,6 +309,7 @@ export default function Cluster() {
       const resp = await getHttp("", id);
       if (!resp.success) {
         messageApi.error(i18n("cluster.query_basic_fail"));
+        setIsShowInfo(false);
         return;
       }
       const clusterDetail: ClusterDetail = {
@@ -443,7 +444,7 @@ export default function Cluster() {
                     { required: true, message: i18n("cluster.modal_host_tip") },
                   ]}
                 >
-                  <Input addonAfter=":" style={{ width: "300px" }} />
+                  <Input addonAfter=":" style={{ width: "230px" }} />
                 </Form.Item>
 
                 <Form.Item<ClusterData>
@@ -459,6 +460,23 @@ export default function Cluster() {
                     min={1024}
                     max={65535}
                     style={{ width: "84px" }}
+                  />
+                </Form.Item>
+                <Form.Item<ClusterData>
+                  label={i18n("cluster.modal_verify")}
+                  name="verify"
+                  initialValue={true}
+                >
+                  <Button
+                    icon={
+                      tlsVerify ? (
+                        <LockOutlined style={{ color: "#2ECC40" }} />
+                      ) : (
+                        <UnlockOutlined style={{ color: "#FF4136" }} />
+                      )
+                    }
+                    style={{ width: "70px" }}
+                    onClick={onClickSwitchTlsVerify}
                   />
                 </Form.Item>
               </Space.Compact>
@@ -518,7 +536,8 @@ export default function Cluster() {
             {clusters.length == 0 && (
               <div className="w-full">
                 <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
-              </div>)}
+              </div>
+            )}
             {clusters.map((item) => (
               <div
                 key={item.name}

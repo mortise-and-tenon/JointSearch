@@ -75,11 +75,13 @@
     "modal_host_tip": "请输入IP或域名",
     "modal_port": "端口",
     "modal_port_tip": "请输入端口",
+    "modal_verify": "证书校验",
     "modal_username": "用户名",
     "modal_password": "密码",
     "modal_btn_test": "测试连接",
     "modal_test_start": "开始测试",
     "modal_test_success": "测试成功。Elasticsearch 版本：{number}",
+    "modal_test_fail_401": "测试失败，请配置用户名和密码",
     "modal_test_fail": "测试失败，请检查配置",
     "delete_title": "删除连接",
     "delete_desc": "确定删除连接{name}？",
@@ -227,7 +229,7 @@
     "element_type_tip": "用于对向量进行编码的数据类型。",
     "dims": "dims",
     "dims_tip": "向量维度数。不能超过 4096。如果未指定 dims，则将其设置为添加到字段的第一个向量的长度。",
-    "similarity":"similarity",
-    "similarity_tip":"用于 kNN 搜索的向量相似度量。文档按照其向量场与查询向量的相似度进行排序。"
+    "similarity": "similarity",
+    "similarity_tip": "用于 kNN 搜索的向量相似度量。文档按照其向量场与查询向量的相似度进行排序。"
   }
 }

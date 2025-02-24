@@ -1,5 +1,7 @@
+import { invoke } from "@tauri-apps/api/core";
 import { BaseDirectory, exists, readTextFile } from "@tauri-apps/plugin-fs";
 import { fetch } from "@tauri-apps/plugin-http";
+import { PlatformAdapter, TauriAdapter } from "./platformAdapter";
 
 export type ThemeData = {
   Color: {
@@ -20,6 +22,7 @@ export type ClusterData = {
   id?: string;
   name?: string;
   protocol?: string;
+  verify?: boolean;
   host?: string;
   port?: number;
   username?: string;
@@ -89,21 +92,16 @@ export type ClusterNodes = {
   nodes: NodeDetail[];
 };
 
-//读取配置文件中的集群数据
+const adapter: PlatformAdapter = new TauriAdapter();
+
+//读取配置文件数据
 export const readConfigFile = async () => {
-  const fileExists = await exists("jointes.json", {
-    baseDir: BaseDirectory.Home,
-  });
-  if (!fileExists) {
-    return [];
-  }
+  return await adapter.readConfigData();
+};
 
-  const jsonContent = await readTextFile("jointes.json", {
-    baseDir: BaseDirectory.Home,
-  });
-
-  const jsonData = JSON.parse(jsonContent);
-  return jsonData["clusters"];
+//写入配置文件数据
+export const writeConfigData = async (file: ConfigFile) => {
+  await adapter.writeConfigData(file);
 };
 
 export const getHttp = async (api: string = "", id?: string, body?: any) => {
@@ -138,13 +136,16 @@ export const postHttp = async (api: string = "", id?: string, body?: any) => {
   return requestHttp(id, "POST", api, body);
 };
 
+//自动匹配集群信息的http请求
 export const requestHttp = async (
   id: string,
   method: string,
   api: string = "",
   body?: any
 ) => {
-  const clusters: ClusterData[] = await readConfigFile();
+  const configFile: ConfigFile = await readConfigFile();
+  const clusters: ClusterData[] = configFile["clusters"];
+
   const clusterFilter = clusters.filter((item) => item.id === id);
   if (clusterFilter.length == 0) {
     throw new Error("400");
@@ -161,35 +162,58 @@ export const requestHttp = async (
     headers["Authorization"] = `Basic ${authValue}`;
   }
 
-  const options = {
+  const options: RequestOptions = {
     method: method,
+    url: url,
+    verify: cluster.verify != undefined ? cluster.verify : false,
     headers: headers,
-    body: body ? JSON.stringify(body) : null,
+    body: body ? JSON.stringify(body) : undefined,
   };
 
   try {
-    console.log("url:" + url);
     console.log(options);
 
-    const response = await fetch(`${url}`, options);
+    const response = await fetchHttp(options);
 
-    if (response.ok) {
-      const contentType = response.headers.get("content-type");
+    if (response.status == 200) {
+      const contentType = response.headers["content-type"];
       let body = {};
       if (contentType?.includes("application/json")) {
-        body = await response.json();
+        body = JSON.parse(response.body);
       } else {
-        body = await response.text();
+        body = response.body;
       }
       return { success: true, body: body };
     } else {
-      const body = await response.json();
-      console.log(body);
-      return { success: false, body: body };
+      const body = JSON.parse(response.body);
+      return { success: false, body: body, status: response.status };
     }
   } catch (error) {
     console.log("http,error");
     console.log(error);
     throw new Error("500");
   }
+};
+
+//请求选项
+export interface RequestOptions {
+  method: string;
+  url: string;
+  verify?: boolean;
+  headers?: Record<string, string>;
+  body?: string | undefined;
+}
+
+//响应数据
+export interface ApiResponse {
+  status: number;
+  body: string;
+  headers: Record<string, string>;
+}
+
+//封装后的通用http请求
+export const fetchHttp = async (options: RequestOptions) => {
+  console.log(options);
+
+  return await invoke<ApiResponse>(`make_request`, { options });
 };
