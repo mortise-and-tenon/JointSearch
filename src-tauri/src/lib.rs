@@ -25,7 +25,7 @@ struct ApiResponse {
 #[command]
 async fn make_request(options: RequestOptions) -> Result<ApiResponse, String> {
     //是否https校验，默认验证
-    let verify = options.verify.unwrap_or(false);
+    let verify = options.verify.unwrap_or(true);
 
     // 创建一个reqwest客户端，并禁用证书验证
     let client = Client::builder()

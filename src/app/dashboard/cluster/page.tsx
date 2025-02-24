@@ -224,7 +224,7 @@ export default function Cluster() {
       try {
         const options = {
           method: "GET",
-          disabled: true,
+          verify: values.verify,
           url: `${url}`,
           headers: headers,
         };
