@@ -41,6 +41,7 @@ import { GlobalContext } from "../../lib/GlobalProvider";
 
 import DescriptionsItem from "antd/es/descriptions/Item";
 import { v4 as uuidv4 } from "uuid";
+import { verify } from "crypto";
 
 export default function Cluster() {
   const {
@@ -66,6 +67,8 @@ export default function Cluster() {
   const [isShowInfo, setIsShowInfo] = useState(false);
   //集群详情
   const [clusterDetail, setClusterDetail] = useState<ClusterDetail>();
+  //是否展示https证书相关
+  const [isHttps, setIsHttps] = useState(true);
   //https证书是否校验
   const [tlsVerify, setTlsVerify] = useState(true);
 
@@ -113,6 +116,15 @@ export default function Cluster() {
   useEffect(() => {
     form.setFieldsValue({ verify: tlsVerify });
   }, [tlsVerify]);
+
+  //切换协议
+  const onSelectProtocal = (value: string) => {
+    setIsHttps(value === "https");
+    //切到http时，重置证书校验
+    if (value === "http") {
+      setTlsVerify(true);
+    }
+  };
 
   //点击保存集群
   const onOk = () => {
@@ -398,7 +410,7 @@ export default function Cluster() {
             <Form
               name="addClusterForm"
               form={form}
-              initialValues={{ protocol: "http", port: 9200 }}
+              initialValues={{ protocol: "https", port: 9200, verify: true }}
               layout="vertical"
               autoComplete="off"
             >
@@ -418,9 +430,26 @@ export default function Cluster() {
 
               <Space.Compact>
                 <Form.Item<ClusterData>
+                  label={i18n("cluster.modal_verify")}
+                  tooltip={i18n("cluster.modal_verify_tooltip")}
+                  name="verify"
+                >
+                  <Button
+                    disabled={!isHttps}
+                    icon={
+                      tlsVerify ? (
+                        <LockOutlined style={{ color: "#2ECC40" }} />
+                      ) : (
+                        <UnlockOutlined style={{ color: "#FF4136" }} />
+                      )
+                    }
+                    style={{ width: "90px" }}
+                    onClick={onClickSwitchTlsVerify}
+                  />
+                </Form.Item>
+                <Form.Item<ClusterData>
                   label={i18n("cluster.modal_protocol")}
                   name="protocol"
-                  tooltip={i18n("cluster.modal_protocol_tooltip")}
                 >
                   <Select
                     options={[
@@ -434,6 +463,7 @@ export default function Cluster() {
                       },
                     ]}
                     style={{ width: "90px" }}
+                    onChange={onSelectProtocal}
                   />
                 </Form.Item>
 
@@ -444,7 +474,7 @@ export default function Cluster() {
                     { required: true, message: i18n("cluster.modal_host_tip") },
                   ]}
                 >
-                  <Input addonAfter=":" style={{ width: "230px" }} />
+                  <Input addonAfter=":" style={{ width: "210px" }} />
                 </Form.Item>
 
                 <Form.Item<ClusterData>
@@ -460,23 +490,6 @@ export default function Cluster() {
                     min={1024}
                     max={65535}
                     style={{ width: "84px" }}
-                  />
-                </Form.Item>
-                <Form.Item<ClusterData>
-                  label={i18n("cluster.modal_verify")}
-                  name="verify"
-                  initialValue={true}
-                >
-                  <Button
-                    icon={
-                      tlsVerify ? (
-                        <LockOutlined style={{ color: "#2ECC40" }} />
-                      ) : (
-                        <UnlockOutlined style={{ color: "#FF4136" }} />
-                      )
-                    }
-                    style={{ width: "70px" }}
-                    onClick={onClickSwitchTlsVerify}
                   />
                 </Form.Item>
               </Space.Compact>
