@@ -101,19 +101,25 @@ export default function Indices() {
         let color = "";
         switch (health) {
           case "red":
-            color = "#FF4136";
+            color = "bg-[#FF4136]";
             break;
           case "yellow":
-            color = "#FFDC00";
+            color = "bg-[#FFDC00]";
             break;
           case "green":
-            color = "#2ECC40";
+            color = "bg-[#2ECC40]";
             break;
           default:
             color = "";
             break;
         }
-        return <Tag color={color}>{health}</Tag>;
+        const style = `rounded-full ${color} w-4 h-4`;
+        return (
+          <div className="flex items-center space-x-1">
+            <div color={color} className={style}></div>
+            <span>{health}</span>
+          </div>
+        );
       },
     },
     {
@@ -1503,8 +1509,10 @@ export default function Indices() {
                                 optionType="button"
                                 buttonStyle="solid"
                                 disabled={
-                                  typeRecords[index].timeSeriesDimensionDisabled ||
-                                  typeRecords[index].timeSeriesDimensionDisabled == undefined
+                                  typeRecords[index]
+                                    .timeSeriesDimensionDisabled ||
+                                  typeRecords[index]
+                                    .timeSeriesDimensionDisabled == undefined
                                 }
                               />
                             </Form.Item>
