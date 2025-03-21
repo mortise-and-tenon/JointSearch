@@ -2,16 +2,17 @@
 
 import {
   ApartmentOutlined,
-  AppstoreOutlined,
   BarChartOutlined,
   ContainerOutlined,
-  MailOutlined,
+  GithubOutlined,
+  GlobalOutlined,
 } from "@ant-design/icons";
-import { ConfigProvider, Layout, Menu, MenuProps } from "antd";
+import { open } from "@tauri-apps/plugin-shell";
+import { Button, ConfigProvider, Layout, Menu, MenuProps, Tooltip } from "antd";
+import zhCN from "antd/locale/zh_CN";
+import { usePathname, useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { GlobalContext } from "../lib/GlobalProvider";
-import { usePathname, useRouter } from "next/navigation";
-import zhCN from "antd/locale/zh_CN";
 
 const { Sider } = Layout;
 
@@ -39,16 +40,10 @@ export default function DashboardLayout({
       title: i18n("menu.cluster"),
     },
     { key: "node", icon: <BarChartOutlined />, title: i18n("menu.node") },
-    { key: "indices", icon: <ContainerOutlined />, title: i18n("menu.indices") },
     {
-      key: "4",
-      title: "",
-      icon: <MailOutlined />,
-    },
-    {
-      key: "sub2",
-      title: "",
-      icon: <AppstoreOutlined />,
+      key: "indices",
+      icon: <ContainerOutlined />,
+      title: i18n("menu.indices"),
     },
   ];
 
@@ -61,6 +56,11 @@ export default function DashboardLayout({
       setSelectedKeys([item?.key.toString()]);
       router.push(`/dashboard/${item?.key.toString()}`);
     }
+  };
+
+  //打开链接
+  const openLink = async (url: string) => {
+    await open(url);
   };
 
   return (
@@ -81,14 +81,38 @@ export default function DashboardLayout({
       <div className="h-screen">
         <Layout className="h-screen">
           <Sider width="60" theme="light">
-            <Menu
-              selectedKeys={selectedKeys}
-              mode="inline"
-              theme="light"
-              inlineCollapsed={true}
-              items={items}
-              onSelect={onSelectMenu}
-            />
+            <div className="h-full flex flex-col justify-between">
+              <Menu
+                selectedKeys={selectedKeys}
+                mode="inline"
+                theme="light"
+                inlineCollapsed={true}
+                items={items}
+                onSelect={onSelectMenu}
+              />
+              <div className="mb-4 flex flex-col items-center">
+                <Tooltip title="GitHub" placement="right">
+                  <Button
+                    icon={<GithubOutlined />}
+                    type="text"
+                    size="large"
+                    onClick={() =>
+                      openLink(
+                        "https://github.com/mortise-and-tenon/JointSearch"
+                      )
+                    }
+                  />
+                </Tooltip>
+                <Tooltip title="官网" placement="right">
+                  <Button
+                    icon={<GlobalOutlined />}
+                    type="text"
+                    onClick={() => openLink("https://joint.mortnon.tech")}
+                  />
+                </Tooltip>
+                <p className="mt-4">v0.1.0</p>
+              </div>
+            </div>
           </Sider>
           <Layout className="px-2">{children}</Layout>
         </Layout>
