@@ -1,0 +1,64 @@
+name: Tauri Build on Linux for Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Tauri app with npx
+        run: npx tauri build
+
+      - name: Read version from tauri.conf.json
+        id: read_version
+        run: |
+          version=$(jq -r '.version' src-tauri/tauri.conf.json)
+          echo "::set-output name=version::$version"
+        shell: bash
+
+      - name: Read productName from tauri.conf.json
+        id: read_product_name
+        run: |
+          productName=$(jq -r '.productName' src-tauri/tauri.conf.json)
+          echo "::set-output name=productName::$productName"
+        shell: bash
+
+      - name: Upload artifacts
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: src-tauri/target/release/bundle/appimage/${{ steps.read_product_name.outputs.productName }}_${{ steps.read_version.outputs.version }}.AppImage
+          asset_name: ${{ steps.read_product_name.outputs.productName }}_${{ steps.read_version.outputs.version }}.AppImage
+          asset_content_type: application/octet-stream    
