@@ -255,6 +255,17 @@
     "geo_point_ignore_malformed_tip": "如果为是，则忽略畸形地理坐标点。如果为否（默认值），畸形地理信息点会产生异常并拒绝整个文档。",
     "ignore_z_value": "ignore_z_value",
     "ignore_z_value_tip": "如果为是（默认值），将接受三维点（存储在源文件中），但只对纬度和经度值进行索引；第三维将被忽略。如果为否，则包含经度和纬度（两个维度）以上值的地理点会出现异常并拒绝整个文档。",
-    "geo_point_null_value_tip": "接受一个地理坐标点值，该值将被替换为任何显式空值。"
+    "geo_point_null_value_tip": "接受一个地理坐标点值，该值将被替换为任何显式空值。",
+    "orientation": "orientation",
+    "orientation_tip": "字段 WKT 多边形的默认方向。",
+    "geo_shape_ignore_malformed_tip": "如果为是，畸形的 GeoJSON 或 WKT 图形将被忽略。如果为否（默认值），畸形的 GeoJSON 和 WKT 图形会产生异常并拒绝整个文档。",
+    "ip_ignore_malformed_tip": "如果为是，则忽略畸形 IP 地址。如果为否（默认值），畸形 IP 地址会产生异常并拒绝整个文档。",
+    "ip_null_value_tip": "接受一个 IPv4 或 IPv6 值，该值将替代任何显式空值。",
+    "relations": "relations",
+    "relations_tip": "定义单一关系，其中A是B的父关系",
+    "form_body": "请求体",
+    "form_type": "表单",
+    "json_type": "JSON",
+    "index_content_error": "请求体格式不正确"
   }
 }

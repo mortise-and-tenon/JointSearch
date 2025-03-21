@@ -255,6 +255,17 @@
     "geo_point_ignore_malformed_tip": "If true, malformed geopoints are ignored. If false (default), malformed geopoints throw an exception and reject the whole document.",
     "ignore_z_value": "ignore_z_value",
     "ignore_z_value_tip": "If true (default) three dimension points will be accepted (stored in source) but only latitude and longitude values will be indexed; the third dimension is ignored. If false, geopoints containing any more than latitude and longitude (two dimensions) values throw an exception and reject the whole document.",
-    "geo_point_null_value_tip": "Accepts an geopoint value which is substituted for any explicit null values."
+    "geo_point_null_value_tip": "Accepts an geopoint value which is substituted for any explicit null values.",
+    "orientation": "orientation",
+    "orientation_tip": "Default orientation for the field's WKT polygons.",
+    "geo_shape_ignore_malformed_tip": "If true, malformed GeoJSON or WKT shapes are ignored. If false (default), malformed GeoJSON and WKT shapes throw an exception and reject the entire document.",
+    "ip_ignore_malformed_tip": "If true, malformed IP addresses are ignored. If false (default), malformed IP addresses throw an exception and reject the whole document.",
+    "ip_null_value_tip": "Accepts an IPv4 or IPv6 value which is substituted for any explicit null values.",
+    "relations": "relations",
+    "relations_tip": "Defines a single relation where A is parent of B.",
+    "form_body": "Request Body",
+    "form_type": "Form",
+    "json_type": "JSON",
+    "index_content_error": "Request body format error"
   }
 }

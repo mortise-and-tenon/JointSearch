@@ -154,7 +154,7 @@ export const requestHttp = async (
   const url = `${cluster.protocol}://${cluster.host}:${cluster.port}${api}`;
 
   const headers: HeadersInit = {
-    "content-type": "application/json",
+    "Content-Type": "application/json",
   };
 
   if (cluster.username != "") {
@@ -171,9 +171,9 @@ export const requestHttp = async (
   };
 
   try {
-    console.log(options);
-
     const response = await fetchHttp(options);
+
+    console.log(response);
 
     if (response.status == 200) {
       const contentType = response.headers["content-type"];

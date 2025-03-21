@@ -31,7 +31,7 @@ async fn make_request(options: RequestOptions) -> Result<ApiResponse, String> {
     let client = Client::builder()
         .danger_accept_invalid_certs(!verify) // 禁用证书验证
         .build()
-        .map_err(|e| e.to_string())?; // 处理客户端创建错误
+        .map_err(|e| format!("构建 Client 失败: {}", e))?; // 处理客户端创建错误
 
     // 根据传入的HTTP方法创建请求
     let method = match options.method.to_uppercase().as_str() {
@@ -59,14 +59,14 @@ async fn make_request(options: RequestOptions) -> Result<ApiResponse, String> {
 
     // 添加请求体（如果存在）
     if let Some(body) = options.body {
-        request = request.body(body);
+        request = request.body(body.clone());
     }
 
     // 发送请求
     let response = request
         .send()
         .await
-        .map_err(|e| e.to_string())?; // 处理请求发送错误
+        .map_err(|e| format!("发送请求失败: {}", e))?; // 处理请求发送错误
 
     // 获取响应状态码
     let status = response.status().as_u16();
