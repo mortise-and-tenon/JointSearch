@@ -1,6 +1,6 @@
-# JointES
+# JointSearch
 
-ES 客户端
+搜索客户端工具，当前支持 Elasticsearch。
 
 # 组件
 

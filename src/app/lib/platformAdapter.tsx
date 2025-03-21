@@ -28,14 +28,14 @@ export interface PlatformAdapter {
 
 export class TauriAdapter implements PlatformAdapter {
   readConfigData = async () => {
-    const fileExists = await exists("jointes.json", {
+    const fileExists = await exists("joint.json", {
       baseDir: BaseDirectory.Home,
     });
     if (!fileExists) {
       return [];
     }
 
-    const jsonContent = await readTextFile("jointes.json", {
+    const jsonContent = await readTextFile("joint.json", {
       baseDir: BaseDirectory.Home,
     });
 
@@ -67,7 +67,7 @@ export class TauriAdapter implements PlatformAdapter {
       });
     }
 
-    await writeTextFile("jointes.json", JSON.stringify(file, null, 2), {
+    await writeTextFile("joint.json", JSON.stringify(file, null, 2), {
       baseDir: BaseDirectory.Home,
     });
   };

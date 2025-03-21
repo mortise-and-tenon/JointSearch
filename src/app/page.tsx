@@ -23,7 +23,7 @@ export default function Home() {
       <div className="flex flex-col items-center">
         <div className="flex justify-content space-x-2">
           <img src="/icon.png" className="h-10 w-10" alt="logo" />
-          <Title>JointES</Title>
+          <Title>JointSearch</Title>
         </div>
 
         <SpinnerDotted

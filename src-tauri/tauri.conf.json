@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "jointes",
+  "productName": "JointSearch",
   "version": "0.1.0",
   "identifier": "fun.mortnon.joint",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "JointES",
+        "title": "JointSearch",
         "width": 1000,
         "height": 600,
         "resizable": true,

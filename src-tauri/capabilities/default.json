@@ -12,7 +12,7 @@
       "identifier": "fs:allow-app-read-recursive",
       "allow": [
         {
-          "path": "$HOME/jointes.json"
+          "path": "$HOME/joint.json"
         }
       ]
     },
@@ -20,7 +20,7 @@
       "identifier": "fs:allow-write-text-file",
       "allow": [
         {
-          "path": "$HOME/jointes.json"
+          "path": "$HOME/joint.json"
         }
       ]
     },
