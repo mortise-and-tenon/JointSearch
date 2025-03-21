@@ -1,4 +1,4 @@
-name: Tauri Build on Linux for Release
+name: Tauri Build on macOS for Release
 
 on:
   release:
@@ -6,22 +6,11 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libgtk-3-dev \
-            libwebkit2gtk-4.0-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            libgdk-pixbuf2.0-dev \
-            libgdk-3-dev
 
       - name: Cache node modules
         uses: actions/cache@v3
@@ -64,12 +53,18 @@ jobs:
           echo "::set-output name=productName::$productName"
         shell: bash
 
+      - name: List files in dmg directory
+        run: |
+          echo "Files in src-tauri/target/release/bundle/dmg:"
+          ls -l src-tauri/target/release/bundle/dmg
+        shell: bash
+
       - name: Upload artifacts
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: src-tauri/target/release/bundle/appimage/${{ steps.read_product_name.outputs.productName }}_${{ steps.read_version.outputs.version }}.AppImage
-          asset_name: ${{ steps.read_product_name.outputs.productName }}_${{ steps.read_version.outputs.version }}.AppImage
+          asset_path: src-tauri/target/release/bundle/dmg/${{ steps.read_product_name.outputs.productName }}_${{ steps.read_version.outputs.version }}.dmg
+          asset_name: ${{ steps.read_product_name.outputs.productName }}_${{ steps.read_version.outputs.version }}.dmg
           asset_content_type: application/octet-stream    
